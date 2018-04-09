@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <math.h> 
 #include "ns3/vector.h"
-#include "ns3/nqos-wifi-mac-helper.h"
+
 using namespace ns3;
 using namespace std;
 NS_LOG_COMPONENT_DEFINE ("SecondScriptExample");
@@ -266,7 +266,7 @@ public:
         ~System(){};
         System(){}
 	static void ObjectDestroyCallBack(Ptr<Object> obptr){
-	  obptr->DisableObjectDestruction();
+	  //obptr->DisableObjectDestruction();
     ostringstream ossinfo;
 		ossinfo << "Object destroyed!!!!!" << "\n";
     NS_LOG_INFO(ossinfo.str());
