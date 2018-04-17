@@ -1,0 +1,35 @@
+Traceback (most recent call last):
+  File "/home/tai/reposnew/ns-3-allinone/ns-3-dev/.waf-1.8.19-b1fc8f7baef51bd2db4c2971909a568d/waflib/Logs.py", line 84, in emit
+    self.flush()
+  File "/usr/lib/python2.7/logging/__init__.py", line 845, in flush
+    self.stream.flush()
+IOError: [Errno 32] Broken pipe
+Logged from file Logs.py, line 163
+Traceback (most recent call last):
+  File "/home/tai/reposnew/ns-3-allinone/ns-3-dev/.waf-1.8.19-b1fc8f7baef51bd2db4c2971909a568d/waflib/Logs.py", line 84, in emit
+    self.flush()
+  File "/usr/lib/python2.7/logging/__init__.py", line 845, in flush
+    self.stream.flush()
+IOError: [Errno 32] Broken pipe
+Logged from file Logs.py, line 163
+Traceback (most recent call last):
+  File "/home/tai/reposnew/ns-3-allinone/ns-3-dev/.waf-1.8.19-b1fc8f7baef51bd2db4c2971909a568d/waflib/Logs.py", line 84, in emit
+    self.flush()
+  File "/usr/lib/python2.7/logging/__init__.py", line 845, in flush
+    self.stream.flush()
+IOError: [Errno 32] Broken pipe
+Logged from file Logs.py, line 163
+Traceback (most recent call last):
+  File "/home/tai/reposnew/ns-3-allinone/ns-3-dev/.waf-1.8.19-b1fc8f7baef51bd2db4c2971909a568d/waflib/Logs.py", line 84, in emit
+    self.flush()
+  File "/usr/lib/python2.7/logging/__init__.py", line 845, in flush
+    self.stream.flush()
+IOError: [Errno 32] Broken pipe
+Logged from file Logs.py, line 163
+UdpEchoServerApplication:UdpEchoServer(0x55f27ad28f10)
+UdpEchoServerApplication:StartApplication(0x55f27ad28f10)
+[PlanedSendEvent] At time 2s EchoClientNode 0 Send packages to EchoServerNode 4
++2.000000000s 0 UdpEchoClientApplication:Send(): [INFO ] At time 2s client sent 1024 bytes to 10.1.4.2 port 9
+UdpEchoServerApplication:StopApplication(0x55f27ad28f10)
+UdpEchoServerApplication:DoDispose(0x55f27ad28f10)
+UdpEchoServerApplication:~UdpEchoServer(0x55f27ad28f10)

@@ -1,0 +1,13 @@
+UdpEchoServerApplication:UdpEchoServer(0x55ffd9aafec0)
+UdpEchoServerApplication:StartApplication(0x55ffd9aafec0)
+[PlanedSendEvent] At time 2s EchoClientNode 0 Send packages to EchoServerNode 4
++2.000000000s 0 UdpEchoClientApplication:Send(): [INFO ] At time 2s client sent 1024 bytes to 10.1.4.2 port 9
+UdpEchoServerApplication:HandleRead(0x55ffd9aafec0, 0x55ffd9a3b1b0)
+At time 2.00737s server received 1024 bytes from 10.1.1.1 port 49153
+Echoing packet
+At time 2.00737s server sent 1024 bytes to 10.1.1.1 port 49153
++2.014745600s 0 UdpEchoClientApplication:HandleRead(): [INFO ] At time 2.01475s client received 1024 bytes from 10.1.4.2 port 9
+UdpEchoServerApplication:StopApplication(0x55ffd9aafec0)
+UdpEchoServerApplication:DoDispose(0x55ffd9aafec0)
+UdpEchoServerApplication:~UdpEchoServer(0x55ffd9aafec0)
+
