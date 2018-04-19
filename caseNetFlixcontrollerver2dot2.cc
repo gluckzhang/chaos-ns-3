@@ -329,7 +329,7 @@ void CalculateChaosPaths(vector<SendEvents*>& events){
   	  }
   	  clog << endl;
   	  clog << "[From Node " << elem->start << " To Node " << elem->end << "] CHAOSPATHS : " ;
-  	  for(set<string> sol : solutions){
+  	  for(vector<string> sol : solutions){
   	    string str;
   	    for(string stuff : sol){
   	      str += stuff + ",";
