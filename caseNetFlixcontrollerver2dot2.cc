@@ -30,6 +30,7 @@ struct SendEvents{
   string end;
   string attribute;
   vector<set<string>> sendroads;
+  vector<vector<string>> vectorsendroads;
   vector<set<string>> chaospaths;
 };
 
@@ -122,6 +123,7 @@ void ProduceRoads(vector<SendEvents*>& events){
 			      vector<string> v = split(road,",");
 			      set<string> s(v.begin(), v.end());
 			      elem->sendroads.push_back(s);
+			      elem->vectorsendroads.push_back(v);
 			    }
 		    } 
 			}
@@ -317,7 +319,7 @@ void CalculateChaosPaths(vector<SendEvents*>& events){
 		  
   	  clog << "[From Node " << elem->start << " To Node " << elem->end << "] POSSIBLE ROADS : " ;
   	  
-  	  for(set<string> road : elem->sendroads){
+  	  for(set<string> road : elem->vectorsendroads){
   	    string str;
   	    for(string stuff : road){
   	      str += stuff + ",";
