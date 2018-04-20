@@ -24,3 +24,10 @@ caseNetFlixchaosver2dot2.cc       	caseNetFlixcontrollerver2dot2.cc         	cas
 
 caseNetFlixchaosver3.cc       	caseNetFlixcontrollerver3.cc        	caseNetFlixver2Unwantedlogs.txt
 
+As in master repository(./NetAnim and load in netanim folder)
+
+NetFlixAnim.xml
+
+NetFlixAnimver2.xml
+
+NetFlixAnimver2dot1.xml
