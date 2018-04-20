@@ -22,6 +22,9 @@ using namespace std;
 NS_LOG_COMPONENT_DEFINE ("FirstScriptExample");
 //Global values
 //Errorinjectiontypes if true then it will initiate that kind of errorinjection 
+//DataRatefaultinject - cause change to the datarate if true
+//Nodefaultinject - destroy a node if true
+//P2PDevicefaultinject - destroy a device if true 
 static bool DoingChaosExperiment = false;
 static bool DataRatefaultinject = false;
 static bool Nodefaultinject = false;
@@ -114,14 +117,10 @@ public:
 };
 
 
-
+//This is used to be able to use TracedValue in ns3 . 
 class MyObject : public Object
 {
 	public:
-		/**
-		 * Register this type.
-		 * \return The TypeId.
-		 */
 		TracedValue<int32_t> m_myDataRate = 32768;
 		static TypeId GetTypeId (void)
 		{
@@ -145,14 +144,8 @@ class MyObject : public Object
 };
 
 
-//void ChangeDataRate(Ptr<NetDevice> minp,string str){
-//	Ptr<PointToPointNetDevice> dev = minp->GetObject<PointToPointNetDevice>();
-//	dev->SetDataRate(DataRate(str));
-//	Ptr<MyObject> ob = (dev->dataOb)->GetObject<MyObject>();
-//	ob->SetDataRate(dev->GetBps());
-//}
 
-
+//Our system to experiment on
 class System{
 
 public:
@@ -166,19 +159,19 @@ public:
 		ossinfo << "Object destroyed!!!!!" << "\n";
                 NS_LOG_INFO(ossinfo.str());
 	}
-
+	//Aggregate a MyObject to a device so we can use tracedvalue later on datarate
 	void SetMyObject(Ptr<NetDevice> minp,Ptr<MyObject> ob){
 		Ptr<PointToPointNetDevice> minp2 = minp->GetObject<PointToPointNetDevice>();
 		ob->SetDataRate(minp2->GetBps());
 		minp2->SetDataOb(ob);
 	}
-
+	//Callback method for a tracedvalue on datarate
 	static void IntTrace (int32_t oldValue, int32_t newValue)
 	{       ostringstream ossinfo;
 		ossinfo << "A monkey had caused chaos!DataRateChanges! Traced " << oldValue << " to " << newValue << std::endl;
                 NS_LOG_INFO(ossinfo.str());
 	}
-
+	//TracedCallback when a datarate is changed
 	static void FixDataRate ( Ptr<PointToPointNetDevice> pointer){
 		if((pointer->GetBps()).GetBitRate()!=DataRate("5Mbps").GetBitRate()){
 		  Ptr<Node> node = pointer->GetNode();
@@ -196,29 +189,30 @@ public:
 	{
 		Ptr<MyObject> myObject = CreateObject<MyObject> ();
 		uint32_t nPackets=1;
-		
+		//Enable logs on udpechoclient and udpechoserver	
 		LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_ALL);
 		LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_ALL);
 		LogComponentEnable ("UdpEchoClientApplication", LOG_PREFIX_ALL);
 		LogComponentEnable ("UdpEchoServerApplication", LOG_PREFIX_ALL);
 
-
+		//Create p2pnodes
 		NodeContainer nodes;
 		nodes.Create (2); 
-
+		//Create p2pdevices 
 		PointToPointHelper pointToPoint;
 		pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("5Mbps"));
 		pointToPoint.SetChannelAttribute ("Delay", StringValue ("2ms"));
-		      
+
 		NetDeviceContainer devices;
 		devices = pointToPoint.Install (nodes);
 		SetMyObject(devices.Get(0),myObject);
 		SetMyObject(devices.Get(1),myObject);
-
+		
 		pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("2Mbps"));
 		NetDeviceContainer dev;
 		dev = pointToPoint.Install(nodes);
 
+		//install internetstack
 		InternetStackHelper stack;
 		stack.Install (nodes);
 
@@ -232,22 +226,19 @@ public:
 		ApplicationContainer serverApps = echoServer.Install (nodes.Get (1));
 		serverApps.Start (Seconds (1.0));
 		serverApps.Stop (Seconds (10.0));
-
+		//Create a echoclient
 		UdpEchoClientHelper echoClient (interfaces.GetAddress (1), 9);
 		echoClient.SetAttribute ("MaxPackets", UintegerValue (nPackets));
 		echoClient.SetAttribute ("Interval", TimeValue (Seconds (1.0)));
 		echoClient.SetAttribute ("PacketSize", UintegerValue (2048));
-		
-		ApplicationContainer clientApps = echoClient.Install (nodes.Get (0));
-		
+
+		ApplicationContainer clientApps = echoClient.Install (nodes.Get (0));		
 
 		clientApps.Start (Seconds (2.0));
 		clientApps.Stop (Seconds (10.0));
-		  
-		myObject->TraceConnectWithoutContext ("DataRateChanges", MakeCallback (&IntTrace));
-		
+		//Set up how nodes will move for net animation afterward.
 		MobilityHelper mobility;
-
+		
 		mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
 		                               "MinX", DoubleValue (0.0),
 		                               "MinY", DoubleValue (0.0),
@@ -258,19 +249,19 @@ public:
 		mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
 		mobility.Install(nodes);
 
-
-
+	
+		//Enable datarate trace if it is change by a monkey then it will be set back to default
 		Ptr<NetDevice> ptrnet1 = (devices.Get(0));
 		Ptr<NetDevice> ptrnet2 = (devices.Get(1));
 		ptrnet1->TraceConnectWithoutContext("DataRateChange",MakeCallback (&FixDataRate));
 		ptrnet2->TraceConnectWithoutContext("DataRateChange",MakeCallback (&FixDataRate));
-
+		myObject->TraceConnectWithoutContext ("DataRateChanges", MakeCallback (&IntTrace));
 		
-
-
+		
+		//Enable Asciitrace
 		AsciiTraceHelper ascii;
 		pointToPoint.EnableAsciiAll (ascii.CreateFileStream ("myfirst.tr"));
-
+		//Create chaos monkey
 		Ptr<MyMonkey> app1 = CreateObject<MyMonkey> ();
 		app1->Setup(nodes,devices,1);
 		app1->SetStartTime (Seconds (2.004));
@@ -291,7 +282,7 @@ int main (int argc, char *argv[])
 
   LogComponentEnable ("FirstScriptExample", LOG_LEVEL_ALL);
   LogComponentEnable ("FirstScriptExample", LOG_PREFIX_ALL);
-  
+  //These exists so that you can injectfault later(check ns3 tutorial).
   CommandLine cmd;
   cmd.AddValue("DataRatefaultinject","Inject fault to datarate to a device",DataRatefaultinject);
   cmd.AddValue("Nodefaultinject","Destroy a node",Nodefaultinject);
