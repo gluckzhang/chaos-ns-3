@@ -14,13 +14,13 @@ Before you run any program in the master branch please replace the all the heade
 
 You need all the files listed in the row inorder to run.
 
-caseNetFlixchaosver1.cc    	caseNetFlixcontroller1.cc    	caseNetFlixver2Unwantedlogs.txt
+caseNetFlixchaosver1.cc     	  caseNetFlixcontroller1.cc    	    caseNetFlixver2Unwantedlogs.txt
 
-caseNetFlixchaosver2.cc     caseNetFlixcontrollerver2.cc     	caseNetFlixver2Unwantedlogs.txt
+caseNetFlixchaosver2.cc         caseNetFlixcontrollerver2.cc     	    caseNetFlixver2Unwantedlogs.txt
 
-caseNetFlixchaosver2dot1.cc 	caseNetFlixcontrollerver2dot1.cc     	caseNetFlixver2Unwantedlogs.txt
+caseNetFlixchaosver2dot1.cc     	caseNetFlixcontrollerver2dot1.cc     	    caseNetFlixver2Unwantedlogs.txt
 
-caseNetFlixchaosver2dot2.cc    	caseNetFlixcontrollerver2dot2.cc     	caseNetFlixver2Unwantedlogs.txt
+caseNetFlixchaosver2dot2.cc       	caseNetFlixcontrollerver2dot2.cc         	caseNetFlixver2Unwantedlogs.txt
 
-caseNetFlixchaosver3.cc    	caseNetFlixcontrollerver3.cc     	caseNetFlixver2Unwantedlogs.txt
+caseNetFlixchaosver3.cc       	caseNetFlixcontrollerver3.cc        	caseNetFlixver2Unwantedlogs.txt
 
