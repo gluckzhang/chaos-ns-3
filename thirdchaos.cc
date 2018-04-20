@@ -26,6 +26,9 @@ using namespace std;
 NS_LOG_COMPONENT_DEFINE ("SecondScriptExample");
 //Global values
 //Errorinjectiontypes if true then it will initiate that kind of errorinjection 
+//P2PNodefaultinject -- Destroy a p2pnode if true ( same logic for Sta,Ap,Csma Nodefaultinject)
+//P2PDevicefaultinject -- Destroy a p2pdevice if true (same logic for sta,Ap Csma Devicefaultinject)
+//DataRatefaultinject -- Change a node datarate if true;
 static bool DoingChaosExperiment = false;
 static bool DataRatefaultinject = false;
 static bool P2PNodefaultinject = false;
@@ -156,6 +159,7 @@ public:
 
 
 
+//This is used to be able to use TracedValue in ns3 
 class MyObject : public Object
 {
 	public:
@@ -186,13 +190,6 @@ class MyObject : public Object
 };
 
 
-//void ChangeDataRate(Ptr<NetDevice> minp,string str){
-//	Ptr<PointToPointNetDevice> dev = minp->GetObject<PointToPointNetDevice>();
-//	dev->SetDataRate(DataRate(str));
-//	Ptr<MyObject> ob = (dev->dataOb)->GetObject<MyObject>();
-//	ob->SetDataRate(dev->GetBps());
-//}
-
 
 //----------------------------------------------------
 //Your system for chaos injection
@@ -202,6 +199,7 @@ class System{
 public:
         ~System(){};
         System(){}
+  //if an object is destroy it callback to this method and pass the object , which is about to be destroyed
 	void ObjectDestroyCallBack(Ptr<Object> obptr){
 		Ptr<Object> newobj = Create<Object>();
 		
@@ -210,19 +208,19 @@ public:
 		ossinfo << "Object destroyed!!!!!" << "\n";
                 NS_LOG_INFO(ossinfo.str());
 	}
-
+ //Aggregate a MyObject to a device so we can use tracedvalue later on datarate
 	void SetMyObject(Ptr<NetDevice> minp,Ptr<MyObject> ob){
 		Ptr<PointToPointNetDevice> minp2 = minp->GetObject<PointToPointNetDevice>();
 		ob->SetDataRate(minp2->GetBps());
 		minp2->SetDataOb(ob);
 	}
-
+ //Callback method for a tracedvalue on datarate
 	static void IntTrace (int32_t oldValue, int32_t newValue)
 	{       ostringstream ossinfo;
 		ossinfo << "A monkey had caused chaos!DataRateChanges! Traced " << oldValue << " to " << newValue << std::endl;
                 NS_LOG_INFO(ossinfo.str());
 	}
-
+  //TracedCallback when a datarate is changed
 	static void FixDataRate ( Ptr<PointToPointNetDevice> pointer){
 		if((pointer->GetBps()).GetBitRate()!=DataRate("5Mbps").GetBitRate()){
 		  Ptr<Node> node = pointer->GetNode();
@@ -383,12 +381,7 @@ public:
 				anim.EnablePacketMetadata (); 
 				string infostr;
 				std::ostringstream oss;
-				//if(printIP){  //Detta är för att komma åt ip på en nod
-					//    Ptr<Node> PtrNode = wifiStaNodes.Get(i);
-					  //  Ptr<Ipv4> ipv4 = PtrNode->GetObject<Ipv4> ();
-					   // Ipv4InterfaceAddress iaddr = ipv4->GetAddress (1,0); 
-					   // Ipv4Address ipAddr = iaddr.GetLocal (); 
-					   // ipAddr.Print(oss);}
+
 				for (uint32_t i = 0; i < wifiStaNodes.GetN (); ++i)
 					 {  
 				anim.UpdateNodeDescription (wifiStaNodes.Get (i),"Sta " );
@@ -418,12 +411,6 @@ public:
 				ptrnet2->TraceConnectWithoutContext("DataRateChange",MakeCallback (&FixDataRate));	  
 			  
 
-			 // std::ostringstream oss;
-				//oss <<
-				//"/NodeList/" << wifiStaNodes.Get (nWifi - 1)->GetId () <<
-				//"/$ns3::MobilityModel/CourseChange";
-
-				//Config::Connect (oss.str(), MakeCallback (&CourseChange));
 				
 				Simulator::Run ();
 				Simulator::Destroy ();
@@ -436,7 +423,7 @@ int main (int argc, char *argv[])
 
   LogComponentEnable ("SecondScriptExample", LOG_LEVEL_ALL);
   LogComponentEnable ("SecondScriptExample", LOG_PREFIX_ALL);
-  
+  //These exists so that you can injectfault later(check ns3 tutorial).
   CommandLine cmd;
   cmd.AddValue("DataRatefaultinject","Inject fault to datarate to a device",DataRatefaultinject);
   cmd.AddValue("P2PNodefaultinject","Destroy a p2p node",P2PNodefaultinject);
