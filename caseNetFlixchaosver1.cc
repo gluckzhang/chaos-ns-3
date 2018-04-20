@@ -162,7 +162,7 @@ public:
 };
 
 
-
+//This is used to be able to use TracedValue in ns3 . 
 class MyObject : public Object
 {
 	public:
@@ -257,6 +257,9 @@ void BuildEchoClient(Ptr<Node> clientnode,Ipv4Address address,int port,double st
 	clientApps.Start (Seconds (starttime));
 	clientApps.Stop (Seconds (10.0));
 }
+
+
+//Our system to experiment on
 class System{
 
 public:
@@ -268,18 +271,19 @@ public:
     NS_LOG_INFO(ossinfo.str());
 	}
 
+	//Aggregate a MyObject to a device so we can use tracedvalue later on datarate
 	void SetMyObject(Ptr<NetDevice> minp,Ptr<MyObject> ob){
 		Ptr<PointToPointNetDevice> minp2 = minp->GetObject<PointToPointNetDevice>();
 		ob->SetDataRate(minp2->GetBps());
 		minp2->SetDataOb(ob);
 	}
-
+	//Callback method for a tracedvalue on datarate
 	static void IntTrace (int32_t oldValue, int32_t newValue)
 	{       ostringstream ossinfo;
 		ossinfo << "A monkey had caused chaos!DataRateChanges! Traced " << oldValue << " to " << newValue << std::endl;
                 NS_LOG_INFO(ossinfo.str());
 	}
-
+	//TracedCallback when a datarate is changed
 	static void FixDataRate ( Ptr<PointToPointNetDevice> pointer){
 		if((pointer->GetBps()).GetBitRate()!=DataRate("5Mbps").GetBitRate()){
 		  Ptr<Node> node = pointer->GetNode();
