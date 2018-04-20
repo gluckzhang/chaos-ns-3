@@ -30,7 +30,9 @@ NS_LOG_COMPONENT_DEFINE ("SecondScriptExample");
 #define PI 3.14159265
 //Global values
 //Errorinjectiontypes if true then it will initiate that kind of errorinjection 
-//static bool PreventDestruction = true;
+//P2PNodefaultinject -- Destroy a p2pnode if true ( same logic for Sta,Ap,Csma Nodefaultinject)
+//P2PDevicefaultinject -- Destroy a p2pdevice if true (same logic for sta,Ap Csma Devicefaultinject)
+
 static bool DoingChaosExperiment = false;
 static bool DataRatefaultinject = false;
 static bool P2PNodefaultinject = false;
@@ -41,9 +43,9 @@ static bool STANodefaultinject = false;
 static bool STADevicefaultinject = false;
 static bool APNodefaultinject = false;
 static bool APDevicefaultinject = false;
+//This is where all the monkeys are stored
 static ApplicationContainer m_monkeys ;
-static NodeContainer emptync;
-static NetDeviceContainer emptynetdev;
+
 class MyMonkey : public Application 
 {
 public:
@@ -191,12 +193,7 @@ class MyObject : public Object
 };
 
 
-//void ChangeDataRate(Ptr<NetDevice> minp,string str){
-//	Ptr<PointToPointNetDevice> dev = minp->GetObject<PointToPointNetDevice>();
-//	dev->SetDataRate(DataRate(str));
-//	Ptr<MyObject> ob = (dev->dataOb)->GetObject<MyObject>();
-//	ob->SetDataRate(dev->GetBps());
-//}
+
 
 
 //----------------------------------------------------
@@ -263,10 +260,9 @@ void BuildEchoClient(Ptr<Node> clientnode,Ipv4Address address,int port,double st
 class System{
 
 public:
-        ~System(){};
-        System(){}
-	static void ObjectDestroyCallBack(Ptr<Object> obptr){
-	  //obptr->DisableObjectDestruction();
+    ~System(){};
+    System(){}
+		static void ObjectDestroyCallBack(Ptr<Object> obptr){
     ostringstream ossinfo;
 		ossinfo << "Object destroyed!!!!!" << "\n";
     NS_LOG_INFO(ossinfo.str());
@@ -315,9 +311,9 @@ public:
 					  LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_ALL);
 					}
 				
-
-				//Create 3 new wifi nodes and add one p2pnode in this nodecontainer
-				//these 3 wifi nodes act as our Station wifi node which according to the animation in thirdanim.xml will randomly move around . The p2pnode which we added will act as our AccessPoint , a beacon which send out signal so that the station nodes will be able to connect
+				//AP (Accesspoint) , Sta (Station) 
+				//Create accesspoint wifinodes(AP wifinodes) .
+				
 				NodeContainer wifiStaNodes,wifiClientApNodes1,wifiClientApNodes2,wifiClientApNodes3,wifiClientApNodes4;
 				wifiStaNodes.Create (nWifi);
 				wifiClientApNodes1.Create(1);
@@ -325,13 +321,13 @@ public:
 				wifiClientApNodes3.Create(1);
 				wifiClientApNodes4.Create(1);
 
-				//Almost same as the p2p and csma . Here we set upp adress and communication protocol and create the appropriate netdevices.
+				//Make AP devices and Sta devices
 				
 				YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
   
 				YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
 				phy.SetChannel (channel.Create ());
-				// Set guard interval
+
 				phy.Set ("ShortGuardEnabled", BooleanValue (useShortGuardInterval));
 
 				WifiMacHelper mac;
@@ -384,8 +380,7 @@ public:
 				p2pClientNodes4.Add(p2pNetFlixNodes.Get(0));
 				p2pClientNodes4.Add(wifiClientApNodes4);
 
-				//Create a pointtopointhelper which help us to configure and add the appropriate device to
-				//the nodes.
+				//Create p2p devices
 				PointToPointHelper pointToPoint;
 				pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("5Mbps"));
 				pointToPoint.SetChannelAttribute ("Delay", StringValue ("2ms"));
@@ -405,8 +400,8 @@ public:
 				p2pClientDevices.Add(p2pClientDevices3);
 				p2pClientDevices.Add(p2pClientDevices4);
 				
-				//Create 3 new csma nodes and add one p2pnode in this nodecontainer and bridge them together
-				//so it becomes a csma bus . Just like p2phelper set datarate and delay on the csmahelper to create and add the appropriate device on the nodes.
+				//Create Csma nodes and devices
+				
 				NodeContainer csmaNodes;
 				csmaNodes.Add (p2pNetFlixNodes.Get (0));
 				csmaNodes.Create (nCsma);
@@ -420,8 +415,7 @@ public:
 				
 				
 				
-				
-				//Add mobility model on the nodes so that we can animate it later . Randomwalk2dMobilitymodel is for the wifinodes and constant for csma and p2p.
+				//Add mobility model on the nodes so that we can animate it later . Randomwalk2dMobilitymodel is for the wifi Sta nodes and constant for csma and p2p.
 				int r = 2*45;
 				double angle = 0.0;
 				double a = 45.0;
@@ -457,7 +451,7 @@ public:
 				mobility.Install(p2pNetFlixNodes);
 				mobility.Install(csmaNodes);
 				
-				//Installing internetstack on nodes(ipv4,ipv6 and so on ) and set ipv4 address on the nodes . We are creating an internet interface for these nodes . More precisely the identities of them so that we can send packets and receive them at these nodes .
+				//Installing internetstack on nodes(ipv4,ipv6 and so on ) and set ipv4 address on the nodes .
 				
 				InternetStackHelper internet;
 				internet.Install (wifiStaNodes);
@@ -492,12 +486,12 @@ public:
 				address.SetBase ("10.1.9.0", "255.255.255.0");
 				address.Assign (staDevices);
 
-				//Create an echoserver which send back whichever packet throwing at it .
+				//Create echoservers  .
 				uint32_t portnr = 9;
 				for( uint32_t i = 0; i < nCsma; ++i){
 					BuildEchoServer(csmaNodes.Get (nCsma - i),portnr + i);
 				}
-				//Create an echoclient . This one class goes in pair with the echoserver .
+				//Connecting Sta to Ap nodes through P2P channel (Think of it as the users phone write in password and connect to his/her own router).
 				Ipv4AddressHelper p2paddress;
 			 
 			  NetDeviceContainer StaToAp;
@@ -528,7 +522,7 @@ public:
 				Simulator::Stop (Seconds (10.0));
 				
 					
-				//Animation . It takes account of every nodes exists in the program and take out the essential info to plot it in the thirdAnim.xml . To run please go to netanim folder and ./NetAnim and select this xml file .
+				//Animation . Set all wifi sta nodes in a circle around point (a,b) where the NetFlix main node is. Csma nodes are just to the left of the NetFlix main node
 				r = 45;
 				angle = 0.0;
 				a = 45.0;
@@ -548,7 +542,7 @@ public:
 				angle += increment;
 				anim.SetConstantPosition(wifiClientApNodes4.Get(0),a + r*cos(angle),b + r*sin(angle));
 				
-				//anim.EnablePacketMetadata (); 
+				
 				angle = 0.0;
 				increment = (2*PI/nWifi);
 				r = 1.5*r;
@@ -582,6 +576,7 @@ public:
 				app1->SetStartTime (Seconds (1.004));
 				app1->SetStopTime (Seconds (5.));
 				app1->Initialize();				
+				
 				//Enable tracesourcses
 				Ptr<NetDevice> ptrnet1 = (p2pClientDevices.Get(0));
 				ptrnet1->TraceConnectWithoutContext("DataRateChange",MakeCallback (&FixDataRate));
