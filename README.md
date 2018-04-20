@@ -12,7 +12,7 @@ IMPORTANT!! Before you run any program in the master branch please replace the a
 
 In this master repository you must have all the files listed below in the same row inorder to run the program .
 
-NetFlixAnim.xml (./NetAnim and load this one in the netanim folder).
+NetFlixAnim.xml (./NetAnim and load this one in the netanim folder) /n
 caseNetFlix.cc   
 caseNetFlixcontroller1.cc   	caseNetFlixchaosver1.cc  	caseNetFlixNonChaoslogs.txt
 
