@@ -30,196 +30,25 @@ NS_LOG_COMPONENT_DEFINE ("SecondScriptExample");
 #define PI 3.14159265
 //Global values
 //Errorinjectiontypes if true then it will initiate that kind of errorinjection 
-//static bool PreventDestruction = true;
+//Generate Roads for output if RequestMapRoad is true
+//Chaospath - for injecting fault in the right node for LDFI
 static bool DoingChaosExperiment = false;
-static bool DataRatefaultinject = false;
-static bool P2PNodefaultinject = false;
-static bool P2PDevicefaultinject = false;
-static bool CSMADevicefaultinject = false;
-static bool CSMANodefaultinject = false;
-static bool STANodefaultinject = false;
-static bool STADevicefaultinject = false;
-static bool APNodefaultinject = false;
-static bool APDevicefaultinject = false;
 static bool RequestMapRoad = false;
 static int StartNode;
 static int EndNode;
 static string ChaosPaths;
 static vector<int> intChaosPaths;
-static ApplicationContainer m_monkeys ;
-static NodeContainer emptync;
-static NetDeviceContainer emptynetdev;
-
-
 
 struct MyNode{
 	Ptr<Node> thisnode;
 	vector <MyNode*> neighbor;
 	vector<string> IPs;
 };
-	
 static vector<MyNode*> allmynodes;	
-
-
-class MyMonkey : public Application 
-{
-public:
-
-  MyMonkey ():m_running (false){
-		m_monkeys.Add(Ptr<MyMonkey>(this));
-		}
-  ~MyMonkey(){}
-  void Setup(NodeContainer p2pnc,NetDeviceContainer p2pnetdev,NodeContainer csmanc,NetDeviceContainer csmanetdev,NodeContainer stanc,NetDeviceContainer stanetdev,NodeContainer apnc,NetDeviceContainer apnetdev){
-	  m_p2pnodes = p2pnc;
-	  m_p2pdevices = p2pnetdev;
-	  m_csmanodes = csmanc;
-	  m_csmadevices = csmanetdev;
-	  m_stawifinodes = stanc;
-	  m_stawifidevices = stanetdev;
-	  m_apwifinodes = apnc;
-	  m_apwifidevices = apnetdev;
-	  m_nr = m_monkeys.GetN() + 1;
-	}	
-  
-       uint32_t m_nr;
-       NetDeviceContainer m_csmadevices;
-       NetDeviceContainer m_p2pdevices;
-       NetDeviceContainer m_stawifidevices;
-       NetDeviceContainer m_apwifidevices;
-       NodeContainer   m_p2pnodes;
-       NodeContainer   m_csmanodes;
-       NodeContainer   m_stawifinodes;
-       NodeContainer   m_apwifinodes;
-       EventId         m_errorInjectEvent;
-       bool            m_running;
-       
-        
-       void NodeDestroy(Ptr<Node> m_node,int nodenr){
-          ostringstream ossinfo;
-	  ossinfo << "Node nr "<< nodenr << " have been destroyed at time " << (Simulator::Now()).GetSeconds() << "\n";
-          std::clog << ossinfo.str();
-          m_node->Dispose();
-        }
-				
-				void DeviceDestroy(Ptr<NetDevice> m_device,int devnr){
-          ostringstream ossinfo;
-	  ossinfo << "Device nr "<<  devnr <<" have been destroyed at time " << (Simulator::Now()).GetSeconds() << "\n";
-          std::clog << ossinfo.str();
-          m_device->Dispose();
-        }
-
-
-				void P2PChangeDataRate(Ptr<NetDevice> minp1){
-	  			Ptr<PointToPointNetDevice> dev1 = minp1->GetObject<PointToPointNetDevice>();
-          ostringstream ossinfo;
-	  ossinfo << "At time " << (Simulator::Now()).GetSeconds() << "s " << " monkey "<< 		  m_nr <<" caused chaos to datarate of device " << dev1->GetIfIndex() << "\n";
-          std::clog << ossinfo.str();
-	  dev1->SetDataRate(DataRate("1Mbps"));
-	}
-
-        void ErrorInject(){
-          if(DataRatefaultinject){
-	    				P2PChangeDataRate(m_p2pdevices.Get(0));
-          }
-          if(P2PNodefaultinject){
-            	NodeDestroy(m_p2pnodes.Get(0),0);
-          }
-          if(P2PDevicefaultinject){
-            	DeviceDestroy(m_p2pdevices.Get(0),0);
-          }
-          if(CSMANodefaultinject){
-            	NodeDestroy(m_csmanodes.Get(0),0);
-          }
-          if(CSMADevicefaultinject){
-            	DeviceDestroy(m_csmadevices.Get(0),0);
-          }
-          if(STANodefaultinject){
-            	NodeDestroy(m_stawifinodes.Get(0),0);
-          }
-          if(STADevicefaultinject){
-            	DeviceDestroy(m_stawifidevices.Get(0),0);
-          }
-          if(APNodefaultinject){
-            	NodeDestroy(m_apwifinodes.Get(0),0);
-          }
-          if(APDevicefaultinject){
-            	DeviceDestroy(m_apwifidevices.Get(0),0);
-          }
-          
-	}
-
-	virtual void StartApplication (void)
-	{
-	  m_running = true;
-	  ErrorInject();
-	}
-
-	virtual void StopApplication (void)
-	{
-	  m_running = false;
-
-	  if (m_errorInjectEvent.IsRunning ())
-	    {
-	      Simulator::Cancel (m_errorInjectEvent);
-	    }
-	}
-
-
-	void ScheduleTx (void)
-	{
-	  if (m_running)
-	    {
-	      Time tNext = Simulator::Now();
-	      m_errorInjectEvent = Simulator::Schedule (tNext, &MyMonkey::ErrorInject,this);
-	    }
-	}
-
-};
-
-
-
-class MyObject : public Object
-{
-	public:
-		/**
-		 * Register this type.
-		 * \return The TypeId.
-		 */
-		TracedValue<int32_t> m_myDataRate = 32768;
-		static TypeId GetTypeId (void)
-		{
-		  static TypeId tid = TypeId ("MyObject")
-		    .SetParent<Object> ()
-		    .SetGroupName ("Tutorial")
-		    .AddConstructor<MyObject> ()
-		    .AddTraceSource ("DataRateChanges",
-		                     "An integer value to trace.",
-		                     MakeTraceSourceAccessor (&MyObject::m_myDataRate),
-		                     "ns3::TracedValueCallback::Int32")
-		  ;
-		  return tid;
-		}
-
-		MyObject () {}
-		void SetDataRate(DataRate data){
-		  m_myDataRate = (int)data.GetBitRate();
-		}
-
-};
-
-
-//void ChangeDataRate(Ptr<NetDevice> minp,string str){
-//	Ptr<PointToPointNetDevice> dev = minp->GetObject<PointToPointNetDevice>();
-//	dev->SetDataRate(DataRate(str));
-//	Ptr<MyObject> ob = (dev->dataOb)->GetObject<MyObject>();
-//	ob->SetDataRate(dev->GetBps());
-//}
-
-
 //----------------------------------------------------
 //Your system for chaos injection
 //Useful global methods
-
+//Get IP from a node
 string GetNodeIP(Ptr<Ipv4> ipv4,uint32_t index){
 	ostringstream oss;
   Ipv4InterfaceAddress iaddr = ipv4->GetAddress (index,0); 
@@ -227,7 +56,7 @@ string GetNodeIP(Ptr<Ipv4> ipv4,uint32_t index){
   ipAddr.Print(oss);
   return oss.str();
 }
-
+//Check if the IP is in the vector
 bool FindIP(string IP,vector<string> vector){
     if ( find(vector.begin(), vector.end(), IP) != vector.end() ){
       return true;
@@ -235,21 +64,7 @@ bool FindIP(string IP,vector<string> vector){
     return false;
 }
 
-NodeContainer BuildCsmaConnection(Ptr<Node> Sta,Ptr<Node> Ap){
-  NodeContainer csmaNodes;
-  csmaNodes.Add(Sta);
-  csmaNodes.Add(Ap);
-
-	CsmaHelper csma;
-	csma.SetChannelAttribute ("DataRate", StringValue ("5Mbps"));
-	csma.SetChannelAttribute ("Delay", TimeValue (NanoSeconds (6560)));
-
-	NetDeviceContainer csmaDevices;
-	csmaDevices = csma.Install (csmaNodes);
-  
-  return csmaNodes;
-}
-
+//Build a p2pconnection
 NetDeviceContainer BuildP2PConnection(Ptr<Node> Sta,Ptr<Node> Ap,Ipv4AddressHelper& address){
   NodeContainer p2pNodes;
 	p2pNodes.Add(Sta);
@@ -267,17 +82,18 @@ NetDeviceContainer BuildP2PConnection(Ptr<Node> Sta,Ptr<Node> Ap,Ipv4AddressHelp
   
   return p2pDevices;
 }
+//write out a message
 void Message(string msg){
   clog << msg << endl;
 }
-
+//Build an udp echo server
 void BuildEchoServer(Ptr<Node> servernode,int port){
   UdpEchoServerHelper echoServer (port);
 	ApplicationContainer serverApps = echoServer.Install (servernode);
 	serverApps.Start (Seconds (1.0));
 	serverApps.Stop (Seconds (10.0));
 }
-
+//Build an udp echo client
 void BuildEchoClient(Ptr<Node> clientnode,Ipv4Address address,int port,double starttime){
   UdpEchoClientHelper echoClient (address, port);
 	echoClient.SetAttribute ("MaxPackets", UintegerValue (1));
@@ -304,44 +120,13 @@ void BuildEchoClient(Ptr<Node> clientnode,Ipv4Address address,int port,double st
 	Simulator::Schedule(Time(Seconds(starttime)),&Message,oss.str());
 }
 
-
+//Our system
 class System{
 
 public:
         ~System(){};
         System(){}
-	static void ObjectDestroyCallBack(Ptr<Object> obptr){
-	  obptr->DisableObjectDestruction();
-    ostringstream ossinfo;
-		ossinfo << "Object destroyed!!!!!" << "\n";
-    NS_LOG_INFO(ossinfo.str());
-	}
-
-	void SetMyObject(Ptr<NetDevice> minp,Ptr<MyObject> ob){
-		Ptr<PointToPointNetDevice> minp2 = minp->GetObject<PointToPointNetDevice>();
-		ob->SetDataRate(minp2->GetBps());
-		minp2->SetDataOb(ob);
-	}
-
-	static void IntTrace (int32_t oldValue, int32_t newValue)
-	{       ostringstream ossinfo;
-		ossinfo << "A monkey had caused chaos!DataRateChanges! Traced " << oldValue << " to " << newValue << std::endl;
-                NS_LOG_INFO(ossinfo.str());
-	}
-
-	static void FixDataRate ( Ptr<PointToPointNetDevice> pointer){
-		if((pointer->GetBps()).GetBitRate()!=DataRate("5Mbps").GetBitRate()){
-		  Ptr<Node> node = pointer->GetNode();
-                  ostringstream ossinfo1;
-		  ossinfo1 << "System detected a chaos monkey at Node "<< node->GetId() <<" Device " << pointer->GetIfIndex() <<" !DataRate changed to "<< (pointer->GetBps()).GetBitRate()  <<"\n" ;
-                  NS_LOG_INFO(ossinfo1.str());
-                  ostringstream ossinfo2;
-		  pointer->SetDataRate(DataRate("5Mbps"));
-		  ossinfo2 << "DataRate fixed back to default!!!!!"<< (pointer->GetBps()).GetBitRate()  <<"\n" ;
-                  NS_LOG_INFO(ossinfo2.str());	
-	  }
-	}
-	
+	//Install p2pdevice of 2 nodes so that one store as a neighbor of the other one
   NetDeviceContainer installP2PDevice(NodeContainer nc,PointToPointHelper p2phelper,vector<MyNode*>& allmynodes){
     bool registered1 = false;
     bool registered2 = false;
@@ -370,7 +155,7 @@ public:
 		
     return p2phelper.Install(nc);
   }
-  
+ 	//Next unvisited nodes in the queue children
   void AddChildren(vector<MyNode*>& children,vector<MyNode*> addition,vector<int> visited){
     for( auto elem: addition){
       if(!CheckVisited(elem->thisnode->GetId(),visited)){
@@ -378,14 +163,14 @@ public:
       }
     }
   }
-  
+  //Check if visited
   bool CheckVisited(int nodeid,vector<int> visited){
     if ( find(visited.begin(), visited.end(), nodeid) != visited.end() ){
       return true;
     }
     return false;
   }
-  
+ 	//Map roads from a start to an end node and store all of the roads in currentroad
   void MapRoad(int start,int end,vector<MyNode*>& allmynodes,vector<int> visited,string currentroad,vector<string>& roads){
 	  currentroad += to_string(start) + ",";
 	  MyNode *currentnode = allmynodes[start];
@@ -403,7 +188,7 @@ public:
 	  }
   }
 
-  
+  //Assign address to 2 p2pnodes and store their IP address in their MyNode
   Ipv4InterfaceContainer AssignP2PAddress(Ipv4AddressHelper address,NetDeviceContainer devnc){
     Ipv4InterfaceContainer con = address.Assign(devnc);
     Ptr<Node> node1 = devnc.Get(0)->GetNode();
@@ -414,7 +199,7 @@ public:
     mynode2->IPs.push_back(GetNodeIP(con.Get(1).first,con.Get(1).second));
     return con;
   }
-  
+  //Exactly like maproad but map from a start to an en IP
   void MapRoadFromIP(string startIP,string endIP,vector<MyNode*>& allmynodes,vector<int> visited,string currentroad,vector<string>& roads){
     int start;
     int end;
@@ -431,7 +216,7 @@ public:
     cout << "Start : " << start << " End : " << end << endl;
     MapRoad(start,end,allmynodes,visited,currentroad,roads);
   }
-  
+  //This is faultinjection in a node so that packet can no longer be send through it
   void SetDownNode(Ptr<Node> node){
     Ptr<Ipv4> ip = node->GetObject<Ipv4>();
 	  for(uint32_t j=0; j < ip->GetNInterfaces(); ++j){
@@ -451,7 +236,7 @@ public:
 					  LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_ALL);
 					}
 				
-
+				//Create p2pnodes
 				NodeContainer p2pNodes1,p2pNodes2,p2pNodes3,p2pNodes4,p2pNodes5,p2pNodes6,p2pNodes7,p2pNodes8,p2pNodes9;
 				p2pNodes1.Create(2);
 				p2pNodes2.Add(p2pNodes1.Get(0));
@@ -472,14 +257,14 @@ public:
 				p2pNodes9.Add(p2pNodes7.Get(1));
 				
 				static NodeContainer allnodes = NodeContainer::GetGlobal();
-				
+				//Create Internetstack
 				InternetStackHelper internet;
 				internet.Install (allnodes);
-				
+				//Create p2pdevices
 				PointToPointHelper pointToPoint;
 				pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("5Mbps"));
 				pointToPoint.SetChannelAttribute ("Delay", StringValue ("2ms"));
-
+				
 				NetDeviceContainer p2pDevices1,p2pDevices2,p2pDevices3,p2pDevices4,p2pDevices5,p2pDevices6,p2pDevices7,p2pDevices8,p2pDevices9;
 				p2pDevices1 = installP2PDevice(p2pNodes1,pointToPoint,allmynodes);
 				p2pDevices2 = installP2PDevice(p2pNodes2,pointToPoint,allmynodes);
@@ -490,7 +275,7 @@ public:
 				p2pDevices7 = installP2PDevice(p2pNodes7,pointToPoint,allmynodes);
 				p2pDevices8 = installP2PDevice(p2pNodes8,pointToPoint,allmynodes);
 				p2pDevices9 = installP2PDevice(p2pNodes9,pointToPoint,allmynodes);
-				
+				//Create p2pinterfaces
 				Ipv4AddressHelper address;
         
 				Ipv4InterfaceContainer p2pInterfaces1,p2pInterfaces2,p2pInterfaces3,p2pInterfaces4,p2pInterfaces5,p2pInterfaces6,p2pInterfaces7,p2pInterfaces8,p2pInterfaces9;	 
@@ -513,7 +298,7 @@ public:
 			  address.SetBase ("10.1.9.0", "255.255.255.0");
 			  p2pInterfaces9 = AssignP2PAddress(address,p2pDevices9);
 					
-					
+				//Add mobility for animation 
         MobilityHelper mobility;
 				mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
 												               "MinX", DoubleValue (0.0),
@@ -527,7 +312,7 @@ public:
 				mobility.Install (allnodes);
 				
 				
-				//Placing Nodes
+				//Animation,Placing Nodes
 				AnimationInterface anim("NetFlixAnimver2dot1.xml");		
 				
 				double r = 20;
@@ -545,7 +330,7 @@ public:
 				for(uint32_t i=0; i < allnodes.GetN() ;++i){
 				  anim.UpdateNodeColor (allnodes.Get(i), 0, 255, 0); 
 				}
-				
+				//build echoservers and echoclients
 				BuildEchoServer(p2pNodes7.Get(1),9);
 				BuildEchoClient(p2pNodes1.Get(0),p2pInterfaces7.GetAddress(1), 9,2.0);
 				Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
@@ -572,7 +357,7 @@ public:
 		
 	}
 };
-
+//split a string by delimiter
 vector<string> split(const string& str, const string& delim)
 {
     vector<string> tokens;
@@ -602,16 +387,7 @@ int main (int argc, char *argv[])
   LogComponentEnable ("SecondScriptExample", LOG_PREFIX_ALL);
   
   CommandLine cmd;
-  
-  cmd.AddValue("DataRatefaultinject","Inject fault to datarate to a device",DataRatefaultinject);
-  cmd.AddValue("P2PNodefaultinject","Destroy a p2p node",P2PNodefaultinject);
-  cmd.AddValue("CSMANodefaultinject","Destroy a csma node",CSMANodefaultinject);
-  cmd.AddValue("STANodefaultinject","Destroy a sta node",STANodefaultinject);
-  cmd.AddValue("APNodefaultinject","Destroy a ap node",APNodefaultinject);
-  cmd.AddValue("P2PDevicefaultinject","Destroy a p2p device",P2PDevicefaultinject);
-  cmd.AddValue("CSMADevicefaultinject","Destroy a csma device",CSMADevicefaultinject);
-  cmd.AddValue("STADevicefaultinject","Destroy a sta device",STADevicefaultinject);
-  cmd.AddValue("APDevicefaultinject","Destroy a ap device",APDevicefaultinject);
+
   cmd.AddValue("DoingChaosExperiment","Enable chaos experiment",DoingChaosExperiment);
   cmd.AddValue("ChaosPaths","add a chaospath",ChaosPaths);
   cmd.AddValue("RequestMapRoad","Map a road from startnode to endnode",RequestMapRoad);
