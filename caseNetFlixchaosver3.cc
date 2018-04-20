@@ -28,19 +28,18 @@ using namespace ns3;
 using namespace std;
 NS_LOG_COMPONENT_DEFINE ("SecondScriptExample");
 #define PI 3.14159265
-
+//Global values
+//Errorinjectiontypes if true then it will initiate that kind of errorinjection 
+//Generate Roads for output if RequestMapRoad is true
+//Chaospath - for injecting fault in the right node for LDFI
 static bool DoingChaosExperiment = false;
 static bool RequestMapRoad = false;
 static int StartNode;
 static int EndNode;
 static string ChaosPaths;
 static vector<int> intChaosPaths;
-static ApplicationContainer m_monkeys ;
-static NodeContainer emptync;
-static NetDeviceContainer emptynetdev;
 
-
-
+//My own version of a node 
 struct MyNode{
 	Ptr<Node> thisnode;
 	vector <MyNode*> neighbor;
@@ -54,12 +53,13 @@ static vector<MyNode*> allmynodes;
 //----------------------------------------------------
 //Your system for chaos injection
 //Useful global methods
+//Execute a cstring command in ubuntu terminal
 void exec(const char* cmd) {
     std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
     if (!pipe) throw std::runtime_error("popen() failed!");
     
 }
-
+//Callback method when a traced udpechoclient is send a packet
 void SendEventCallback(Ptr<UdpEchoClient> client){
   MyNode* node = allmynodes[client->GetNode()->GetId()];
   ostringstream oss;
@@ -75,6 +75,7 @@ void SendEventCallback(Ptr<UdpEchoClient> client){
   }
 }
 
+//Get IP from a node
 string GetNodeIP(Ptr<Ipv4> ipv4,uint32_t index){
 	ostringstream oss;
   Ipv4InterfaceAddress iaddr = ipv4->GetAddress (index,0); 
@@ -82,7 +83,7 @@ string GetNodeIP(Ptr<Ipv4> ipv4,uint32_t index){
   ipAddr.Print(oss);
   return oss.str();
 }
-
+//Check if the IP is in the vector
 bool FindIP(string IP,vector<string> vector){
     if ( find(vector.begin(), vector.end(), IP) != vector.end() ){
       return true;
@@ -90,49 +91,18 @@ bool FindIP(string IP,vector<string> vector){
     return false;
 }
 
-NodeContainer BuildCsmaConnection(Ptr<Node> Sta,Ptr<Node> Ap){
-  NodeContainer csmaNodes;
-  csmaNodes.Add(Sta);
-  csmaNodes.Add(Ap);
-
-	CsmaHelper csma;
-	csma.SetChannelAttribute ("DataRate", StringValue ("5Mbps"));
-	csma.SetChannelAttribute ("Delay", TimeValue (NanoSeconds (6560)));
-
-	NetDeviceContainer csmaDevices;
-	csmaDevices = csma.Install (csmaNodes);
-  
-  return csmaNodes;
-}
-
-NetDeviceContainer BuildP2PConnection(Ptr<Node> Sta,Ptr<Node> Ap,Ipv4AddressHelper& address){
-  NodeContainer p2pNodes;
-	p2pNodes.Add(Sta);
-	p2pNodes.Add(Ap);
-
-	PointToPointHelper pointToPoint;
-	pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("5Mbps"));
-	pointToPoint.SetChannelAttribute ("Delay", StringValue ("2ms"));
-
-	NetDeviceContainer p2pDevices;
-	p2pDevices = pointToPoint.Install (p2pNodes);
-
-	Ipv4InterfaceContainer p2pInterfaces;
-	p2pInterfaces = address.Assign (p2pDevices);
-  
-  return p2pDevices;
-}
+//write out a message
 void Message(string msg){
   clog << msg << endl;
 }
-
+//Build an udp echo server
 void BuildEchoServer(Ptr<Node> servernode,int port){
   UdpEchoServerHelper echoServer (port);
 	ApplicationContainer serverApps = echoServer.Install (servernode);
 	serverApps.Start (Seconds (1.0));
 	serverApps.Stop (Seconds (10.0));
 }
-
+//Build an udp echo client
 void BuildEchoClient(Ptr<Node> clientnode,Ipv4Address address,int port,double starttime){
   UdpEchoClientHelper echoClient (address, port);
 	echoClient.SetAttribute ("MaxPackets", UintegerValue (1));
@@ -152,6 +122,7 @@ void BuildEchoClient(Ptr<Node> clientnode,Ipv4Address address,int port,double st
 	    servernodeid = elem->thisnode->GetId();
 	  }
 	}
+	//Add tracedcallback to the udpechoclient
 	if(DoingChaosExperiment==0){
 		(clientApps.Get(0))->TraceConnectWithoutContext("MyTx",MakeCallback (&SendEventCallback));
 	}
@@ -166,7 +137,7 @@ class System{
 public:
         ~System(){};
         System(){}
-
+	//Install p2pdevice of 2 nodes so that one store as a neighbor of the other one
   NetDeviceContainer installP2PDevice(NodeContainer nc,PointToPointHelper p2phelper,vector<MyNode*>& allmynodes){
     bool registered1 = false;
     bool registered2 = false;
@@ -195,7 +166,7 @@ public:
 		
     return p2phelper.Install(nc);
   }
-  
+ 	//Next unvisited nodes in the queue children
   void AddChildren(vector<MyNode*>& children,vector<MyNode*> addition,vector<int> visited){
     for( auto elem: addition){
       if(!CheckVisited(elem->thisnode->GetId(),visited)){
@@ -203,14 +174,14 @@ public:
       }
     }
   }
-  
+  //Check if visited
   bool CheckVisited(int nodeid,vector<int> visited){
     if ( find(visited.begin(), visited.end(), nodeid) != visited.end() ){
       return true;
     }
     return false;
   }
-  
+ 	//Map roads from a start to an end node and store all of the roads in currentroad
   void MapRoad(int start,int end,vector<MyNode*>& allmynodes,vector<int> visited,string currentroad,vector<string>& roads){
 	  currentroad += to_string(start) + ",";
 	  MyNode *currentnode = allmynodes[start];
@@ -228,7 +199,7 @@ public:
 	  }
   }
 
-  
+  //Assign address to 2 p2pnodes and store their IP address in their MyNode
   Ipv4InterfaceContainer AssignP2PAddress(Ipv4AddressHelper address,NetDeviceContainer devnc){
     Ipv4InterfaceContainer con = address.Assign(devnc);
     Ptr<Node> node1 = devnc.Get(0)->GetNode();
@@ -239,7 +210,7 @@ public:
     mynode2->IPs.push_back(GetNodeIP(con.Get(1).first,con.Get(1).second));
     return con;
   }
-  
+  //Exactly like maproad but map from a start to an en IP
   void MapRoadFromIP(string startIP,string endIP,vector<MyNode*>& allmynodes,vector<int> visited,string currentroad,vector<string>& roads){
     int start;
     int end;
@@ -256,14 +227,13 @@ public:
     cout << "Start : " << start << " End : " << end << endl;
     MapRoad(start,end,allmynodes,visited,currentroad,roads);
   }
-  
+  //This is faultinjection in a node so that packet can no longer be send through it
   void SetDownNode(Ptr<Node> node){
     Ptr<Ipv4> ip = node->GetObject<Ipv4>();
 	  for(uint32_t j=0; j < ip->GetNInterfaces(); ++j){
 	    ip->SetDown(j);
 	  }
   }
-  
 	void RunSystem ()
 	{     
 				vector<string> roads;
@@ -277,7 +247,7 @@ public:
 					}
 				static NodeContainer allnodes = NodeContainer::GetGlobal();
 				allnodes.Create(6);
-				
+				//Create p2pNodes
 				NodeContainer p2pNodes1,p2pNodes2,p2pNodes3,p2pNodes4,p2pNodes5,p2pNodes6,p2pNodes7,p2pNodes8,p2pNodes9,p2pNodes10;
 				p2pNodes1.Add(allnodes.Get(0));
 				p2pNodes1.Add(allnodes.Get(1));
@@ -299,14 +269,14 @@ public:
 				p2pNodes9.Add(allnodes.Get(5));
 				p2pNodes10.Add(allnodes.Get(4));
 				p2pNodes10.Add(allnodes.Get(5));
-				
+				//Create Internetstack
 				InternetStackHelper internet;
 				internet.Install (allnodes);
-				
+				//Create p2pdevices
 				PointToPointHelper pointToPoint;
 				pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("5Mbps"));
 				pointToPoint.SetChannelAttribute ("Delay", StringValue ("2ms"));
-
+				
 				NetDeviceContainer p2pDevices1,p2pDevices2,p2pDevices3,p2pDevices4,p2pDevices5,p2pDevices6,p2pDevices7,p2pDevices8,p2pDevices9,p2pDevices10;
 				p2pDevices1 = installP2PDevice(p2pNodes1,pointToPoint,allmynodes);
 				p2pDevices2 = installP2PDevice(p2pNodes2,pointToPoint,allmynodes);
@@ -320,7 +290,7 @@ public:
 				p2pDevices10 = installP2PDevice(p2pNodes10,pointToPoint,allmynodes);
 				
 				Ipv4AddressHelper address;
-        
+        //Create p2pinterfaces
 				Ipv4InterfaceContainer p2pInterfaces1,p2pInterfaces2,p2pInterfaces3,p2pInterfaces4,p2pInterfaces5,p2pInterfaces6,p2pInterfaces7,p2pInterfaces8,p2pInterfaces9,p2pInterfaces10;	 
 				address.SetBase ("10.1.1.0", "255.255.255.0");
 				p2pInterfaces1 = AssignP2PAddress(address,p2pDevices1);
@@ -342,7 +312,7 @@ public:
 			  p2pInterfaces9 = AssignP2PAddress(address,p2pDevices9);
 			  address.SetBase ("10.1.10.0", "255.255.255.0");
 			  p2pInterfaces10 = AssignP2PAddress(address,p2pDevices10);
-					
+			  //Add mobility for animation 
         MobilityHelper mobility;
 				mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
 												               "MinX", DoubleValue (0.0),
@@ -356,7 +326,7 @@ public:
 				mobility.Install (allnodes);
 				
 				
-				//Placing Nodes
+				//Animation,Placing Nodes
 				AnimationInterface anim("NetFlixAnimver2dot2.xml");		
 				
 				double r = 20;
@@ -373,12 +343,11 @@ public:
 				for(uint32_t i=0; i < allnodes.GetN() ;++i){
 				  anim.UpdateNodeColor (allnodes.Get(i), 0, 255, 0); 
 				}
-				
+				//build echoservers and echoclients
 				BuildEchoServer(p2pNodes10.Get(1),9);
 				BuildEchoClient(p2pNodes1.Get(0),p2pInterfaces10.GetAddress(1), 9,2.0);
-
-				
 				Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
+			  
 			  if(!intChaosPaths.empty()){
 					for( int elem : intChaosPaths){
 					  SetDownNode(allnodes.Get(elem));
@@ -401,7 +370,7 @@ public:
 		
 	}
 };
-
+//split a string by delimiter
 vector<string> split(const string& str, const string& delim)
 {
     vector<string> tokens;
