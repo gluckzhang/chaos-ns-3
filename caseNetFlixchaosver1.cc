@@ -32,7 +32,7 @@ NS_LOG_COMPONENT_DEFINE ("SecondScriptExample");
 //Errorinjectiontypes if true then it will initiate that kind of errorinjection 
 //P2PNodefaultinject -- Destroy a p2pnode if true ( same logic for Sta,Ap,Csma Nodefaultinject)
 //P2PDevicefaultinject -- Destroy a p2pdevice if true (same logic for sta,Ap Csma Devicefaultinject)
-
+//DataRatefaultinject -- Change a node datarate if true;
 static bool DoingChaosExperiment = false;
 static bool DataRatefaultinject = false;
 static bool P2PNodefaultinject = false;
