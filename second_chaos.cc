@@ -25,6 +25,9 @@ using namespace std;
 NS_LOG_COMPONENT_DEFINE ("SecondScriptExample");
 //Global values
 //Errorinjectiontypes if true then it will initiate that kind of errorinjection 
+//P2PNodefaultinject -- Destroy a p2pnode if true ( same logic for Sta,Ap,Csma Nodefaultinject)
+//P2PDevicefaultinject -- Destroy a p2pdevice if true (same logic for sta,Ap Csma Devicefaultinject)
+//DataRatefaultinject -- Change a node datarate if true;
 static bool DoingChaosExperiment = false;
 static bool DataRatefaultinject = false;
 static bool P2PNodefaultinject = false;
@@ -154,7 +157,7 @@ public:
 };
 
 
-
+//This is used to be able to use TracedValue in ns3 . 
 class MyObject : public Object
 {
 	public:
@@ -185,14 +188,6 @@ class MyObject : public Object
 };
 
 
-//void ChangeDataRate(Ptr<NetDevice> minp,string str){
-//	Ptr<PointToPointNetDevice> dev = minp->GetObject<PointToPointNetDevice>();
-//	dev->SetDataRate(DataRate(str));
-//	Ptr<MyObject> ob = (dev->dataOb)->GetObject<MyObject>();
-//	ob->SetDataRate(dev->GetBps());
-//}
-
-
 //----------------------------------------------------
 //Your system for chaos injection
 
@@ -209,19 +204,20 @@ public:
 		ossinfo << "Object destroyed!!!!!" << "\n";
                 NS_LOG_INFO(ossinfo.str());
 	}
-
+  //Aggregate a MyObject to a device so we can use tracedvalue later on datarate
 	void SetMyObject(Ptr<NetDevice> minp,Ptr<MyObject> ob){
 		Ptr<PointToPointNetDevice> minp2 = minp->GetObject<PointToPointNetDevice>();
 		ob->SetDataRate(minp2->GetBps());
 		minp2->SetDataOb(ob);
 	}
-
+  //Callback method for a tracedvalue on datarate
 	static void IntTrace (int32_t oldValue, int32_t newValue)
 	{       ostringstream ossinfo;
 		ossinfo << "A monkey had caused chaos!DataRateChanges! Traced " << oldValue << " to " << newValue << std::endl;
                 NS_LOG_INFO(ossinfo.str());
 	}
 
+	//TracedCallback when a datarate is changed
 	static void FixDataRate ( Ptr<PointToPointNetDevice> pointer){
 		if((pointer->GetBps()).GetBitRate()!=DataRate("5Mbps").GetBitRate()){
 		  Ptr<Node> node = pointer->GetNode();
@@ -239,7 +235,7 @@ public:
 	{
 			bool verbose = true;
 			uint32_t nCsma = 3;
-
+			//Enable logs on udpechoclient and udpechoserver	
 
 			if (verbose)
 				{
@@ -250,32 +246,32 @@ public:
 				}
 
 			nCsma = nCsma == 0 ? 1 : nCsma;
-
+			//Create p2pnodes
 			NodeContainer p2pNodes;
 			p2pNodes.Create (2);
-
+			//Create 4 csmaNodes
 			NodeContainer csmaNodes;
 			csmaNodes.Add (p2pNodes.Get (1));
 			csmaNodes.Create (nCsma);
-
+			//Create p2pdevices
 			PointToPointHelper pointToPoint;
 			pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("5Mbps"));
 			pointToPoint.SetChannelAttribute ("Delay", StringValue ("2ms"));
-
+			
 			NetDeviceContainer p2pDevices;
 			p2pDevices = pointToPoint.Install (p2pNodes);
-
+			//Create csmadevices
 			CsmaHelper csma;
 			csma.SetChannelAttribute ("DataRate", StringValue ("100Mbps"));
 			csma.SetChannelAttribute ("Delay", TimeValue (NanoSeconds (6560)));
 
 			NetDeviceContainer csmaDevices;
 			csmaDevices = csma.Install (csmaNodes);
-
+			//Install internetstack on all nodes
 			InternetStackHelper stack;
 			stack.Install (p2pNodes.Get (0));
 			stack.Install (csmaNodes);
-
+			//Install internetinterfaces
 			Ipv4AddressHelper address;
 			address.SetBase ("10.1.1.0", "255.255.255.0");
 			Ipv4InterfaceContainer p2pInterfaces;
@@ -284,13 +280,13 @@ public:
 			address.SetBase ("10.1.2.0", "255.255.255.0");
 			Ipv4InterfaceContainer csmaInterfaces;
 			csmaInterfaces = address.Assign (csmaDevices);
-
+			//Create an udpechoserver
 			UdpEchoServerHelper echoServer (9);
 
 			ApplicationContainer serverApps = echoServer.Install (csmaNodes.Get (nCsma-1));
 			serverApps.Start (Seconds (1.0));
 			serverApps.Stop (Seconds (10.0));
-
+			//Create a udpechoclient
 			UdpEchoClientHelper echoClient (csmaInterfaces.GetAddress (nCsma-1), 9);
 			echoClient.SetAttribute ("MaxPackets", UintegerValue (1));
 			echoClient.SetAttribute ("Interval", TimeValue (Seconds (1.0)));
@@ -308,7 +304,7 @@ public:
 			pointToPoint.EnablePcap ("second", p2pNodes.Get (0)->GetId (), 0);
 			csma.EnablePcap ("second", csmaNodes.Get (nCsma)->GetId (), 0, false);
 			csma.EnablePcap ("second", csmaNodes.Get (nCsma-1)->GetId (), 0, false); 
-			
+			//add mobility on nodes for animation later
 			MobilityHelper mobility;
 			mobility.SetPositionAllocator ("ns3::GridPositionAllocator",
 				                             "MinX", DoubleValue (0.0),
@@ -334,7 +330,7 @@ public:
 		  ptrnet2->TraceConnectWithoutContext("DataRateChange",MakeCallback (&FixDataRate));
 
        
-			
+			//Net animation
 			AnimationInterface anim("SecondAnim.xml");
 			anim.EnablePacketMetadata (); 
 			for (uint32_t i = 0; i < p2pNodes.GetN ()-1; ++i)
@@ -359,7 +355,7 @@ int main (int argc, char *argv[])
 
   LogComponentEnable ("SecondScriptExample", LOG_LEVEL_ALL);
   LogComponentEnable ("SecondScriptExample", LOG_PREFIX_ALL);
-  
+  //These exists so that you can injectfault later(check ns3 tutorial).
   CommandLine cmd;
   cmd.AddValue("DataRatefaultinject","Inject fault to datarate to a device",DataRatefaultinject);
   cmd.AddValue("P2PNodefaultinject","Destroy a p2p node",P2PNodefaultinject);
