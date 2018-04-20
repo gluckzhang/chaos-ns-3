@@ -195,7 +195,8 @@ class System{
 
 public:
         ~System(){};
-        System(){}
+        System(){};
+	//if an object is destroy it callback to this method and pass the object , which is about to be destroyed
 	void ObjectDestroyCallBack(Ptr<Object> obptr){
 		Ptr<Object> newobj = Create<Object>();
 		
