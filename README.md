@@ -22,7 +22,7 @@ caseNetFlixchaosver2dot1.cc     	caseNetFlixcontrollerver2dot1.cc     	    caseN
 
 caseNetFlixchaosver2dot2.cc       	caseNetFlixcontrollerver2dot2.cc         	caseNetFlixver2Unwantedlogs.txt
 
-caseNetFlixchaosver3.cc       	caseNetFlixcontrollerver3.cc        	caseNetFlixver2Unwantedlogs.txt
+caseNetFlixchaosver3.cc  	caseNetFlixcontrollerver3.cc 	caseNetFlixver2Unwantedlogs.txt  caseNetFlixlogs3UnwantedLogs.txt
 
 As in master repository(./NetAnim and load in netanim folder)
 
