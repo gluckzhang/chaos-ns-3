@@ -13,29 +13,29 @@
 #include <chrono>
 #include<bits/stdc++.h>
 using namespace std;
-//test stuffs
-//std::string command = "./waf --run scratch/firsterrorcontroller 2> scratch/firstlogs.txt";
-//exec(command.c_str());
 
-
+//Start NextExperiment if true
 bool NextExperiment = true;
+
+//Cexp = a chaos experiment object
 struct CExp{
   string name;
   string attribute;
 };
 
+//execute an cstring input in ubuntu terminal
 void exec(const char* cmd) {
     std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
     if (!pipe) throw std::runtime_error("popen() failed!");
     
 }
-
+//execute a chaos experiment on caseNetFlixchaosver1
 void DoingChaos(string attribute){
    std::string command = "./waf --run \"scratch/caseNetFlixchaosver1" + attribute + " 2> scratch/caseNetFlixlogs.txt";
    exec(command.c_str());
 
 }
-
+//Setup an experiment and put it in a list ChaosExperiments
 void Setup(vector<CExp>& Cexp ,string nameln,string attrln){
     CExp thing;
     thing.name = nameln;
@@ -66,6 +66,7 @@ int main (){
     Setup(ChaosExperiments,"APNodefaultinject", APNodefaultinject);
     Setup(ChaosExperiments,"APDevicefaultinject", APDevicefaultinject);
 
+		//Begin chaos experiment , take difference of the logs file and the nonchaos case and read it .
     unsigned int i;
     for (i=0; i<ChaosExperiments.size(); i++){ 
       if(NextExperiment){
@@ -82,7 +83,8 @@ int main (){
     	      NextExperiment = true;
 	        } 
         }
-	if(Result!= "EXPERIMENT SUCCESS!"){
+    //If the result is success then continue the experiment 
+		if(Result!= "EXPERIMENT SUCCESS!"){
           clog << Result << endl;
         }
       }
