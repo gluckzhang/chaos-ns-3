@@ -9,5 +9,18 @@ Our purpose here in this Github project is a part of our Bachelor’s Thesis. We
 
 IMPORTANT!!
 Before you run any program in the master branch please replace the all the header files in ns3 with those in the ns3headerfiles branch. modified files: global-route-manager.cc object.cc object.h point-to-point-net-device.cc point-to-point-net-device.h udp-echo-client.cc udp-echo-client.h
-Also each chaos program have a specific controller . In this LDFI repository the for example	caseNetFlixchaosver1.cc is with  	caseNetFlixcontroller1.cc , caseNetFlixchaosver2.cc is with caseNetFlixcontrollerver2.cc.
+
+
+
+You need all the files listed in the row inorder to run.
+
+caseNetFlixchaosver1.cc    	caseNetFlixcontroller1.cc    	caseNetFlixver2Unwantedlogs.txt
+
+caseNetFlixchaosver2.cc     caseNetFlixcontrollerver2.cc     	caseNetFlixver2Unwantedlogs.txt
+
+caseNetFlixchaosver2dot1.cc 	caseNetFlixcontrollerver2dot1.cc     	caseNetFlixver2Unwantedlogs.txt
+
+caseNetFlixchaosver2dot2.cc    	caseNetFlixcontrollerver2dot2.cc     	caseNetFlixver2Unwantedlogs.txt
+
+caseNetFlixchaosver3.cc    	caseNetFlixcontrollerver3.cc     	caseNetFlixver2Unwantedlogs.txt
 
