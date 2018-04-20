@@ -14,33 +14,31 @@
 #include<bits/stdc++.h>
 #include <algorithm>
 using namespace std;
-//test stuffs
-//std::string command = "./waf --run scratch/firsterrorcontroller 2> scratch/firstlogs.txt";
-//exec(command.c_str());
-
-
+//Start NextExperiment if true
 bool NextExperiment = true;
+
+//Cexp = a chaos experiment object
 struct CExp{
   string name;
   string attribute;
 };
-
+//For each [PlanedSendEvent] take the info from the outputfile from the Nonchaos case and store it as a sendevent
 struct SendEvents{
   string start;
   string end;
   string attribute;
   vector<set<string>> sendroads;
-  vector<vector<string>> vectorsendroads;
   vector<set<string>> chaospaths;
 };
 
+//This is for calculateting chaos road . 
 struct MyNode{
   string info;
   vector<MyNode*> neighbor;
   set<string> stringneighbor;
   vector<vector<string>> chaosways;
 };
-
+//Split a string by a delimiter
 vector<string> split(const string& str, const string& delim)
 {
     vector<string> tokens;
@@ -56,18 +54,19 @@ vector<string> split(const string& str, const string& delim)
     while (pos < str.length() && prev < str.length());
     return tokens;
 }
-
+//execute an cstring input in ubuntu terminal
 void exec(const char* cmd) {
     std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
     if (!pipe) throw std::runtime_error("popen() failed!");
     
 }
-
+//execute a chaos experiment on caseNetFlixchaosver2
 void DoingChaos(string attribute){
-   std::string command = "./waf --run \"scratch/caseNetFlixchaosver2dot2" + attribute + " 2> scratch/caseNetFlixlogs2dot2.txt";
+   std::string command = "./waf --run \"scratch/caseNetFlixchaosver2dot2" + attribute + " 2> scratch/caseNetFlixlogs2.txt";
    exec(command.c_str());
 }
 
+//Read logfile from the experient (After DoingChaos function)
 void ReadLog(){
   exec("diff scratch/caseNetFlixver2Unwantedlogs.txt scratch/caseNetFlixlogs2dot2.txt | grep '>' | sed 's/^> //g' > scratch/caseNetFlixver2logsdiff.txt");
   ifstream infile("scratch/caseNetFlixver2logsdiff.txt");
@@ -86,14 +85,7 @@ void ReadLog(){
   infile.close();
 }
 
-void Setup(vector<CExp>& Cexp ,string nameln,string attrln){
-    CExp thing;
-    thing.name = nameln;
-    thing.attribute = attrln;
-    Cexp.push_back(thing);
-}
-
-
+//Generate output from NonChaos case and look for [PlanedSendEvent]
 void RecordSendEvents(vector<SendEvents*>& events){
   exec("./waf --run scratch/caseNetFlixchaosver2dot2 2> scratch/caseNetFlixlogs2dot2.txt");
   ifstream infile("scratch/caseNetFlixlogs2dot2.txt");
@@ -107,13 +99,13 @@ void RecordSendEvents(vector<SendEvents*>& events){
       } 
   }
 }
-
+//Request the netflixmodule to give back all of the possible roads to the same destination
 void ProduceRoads(vector<SendEvents*>& events){
     string RequestMapRoad = " --RequestMapRoad=1";
     for( auto elem: events){
       elem->attribute = RequestMapRoad + " --StartNode=" + elem->start + " --EndNode=" + elem->end + "\"";
       DoingChaos(elem->attribute);
-		  ifstream infile("scratch/caseNetFlixlogs2dot2.txt");
+		  ifstream infile("scratch/caseNetFlixlogs2.txt");
 		  string findstring = "[Roads from Node " + elem->start + " to Node " + elem->end + "]";
 			for (string line; std::getline(infile, line); ) {   
 		    if (line.find(findstring) != std::string::npos){
@@ -123,13 +115,12 @@ void ProduceRoads(vector<SendEvents*>& events){
 			      vector<string> v = split(road,",");
 			      set<string> s(v.begin(), v.end());
 			      elem->sendroads.push_back(s);
-			      elem->vectorsendroads.push_back(v);
 			    }
 		    } 
 			}
     }
 }
-
+//Find set intersection of all roads for the signal(packet)
 set<string> FindIntersection(vector<set<string>> sendroads){
   set<string> intersect = sendroads[0];
   for( auto elem: sendroads){
@@ -141,7 +132,7 @@ set<string> FindIntersection(vector<set<string>> sendroads){
   }
   return intersect;
 }
-
+//Take the different of the roads with the intersection from FindIntersection so that we have less work when calculating chaospaths
 vector<set<string>> FindIntersectedSendRoad(vector<set<string>> sendroads,set<string> intersect){
 	vector<set<string>> intersectedsendroads;
   for(auto road : sendroads){
@@ -152,7 +143,7 @@ vector<set<string>> FindIntersectedSendRoad(vector<set<string>> sendroads,set<st
   } 
   return intersectedsendroads;
 }
-
+//Check if a set is a permutaion of one of the set in the vector
 bool CheckIfPermutation(set<string> set1,vector<set<string>> vecset){
   for( auto set2 : vecset){
 		set<string> dummyset;
@@ -170,7 +161,7 @@ bool CheckIfPermutation(set<string> set1,vector<set<string>> vecset){
 	}
   return false;
 }
-
+//Check if a node is already visisted
 bool CheckVisited(MyNode* node, vector<MyNode*> visited){
   for(auto elem : visited){
     if(node->info == elem->info){
@@ -179,7 +170,7 @@ bool CheckVisited(MyNode* node, vector<MyNode*> visited){
   }
   return false;
 }
-
+//Check if the generated chaospath successfully kill all of the sendroads .
 bool FailAllRoads(vector<set<string>> intersectedroads,set<string> chaoswayset){
   for(auto elem : intersectedroads){
     set<string> dummyset;
@@ -194,7 +185,7 @@ bool FailAllRoads(vector<set<string>> intersectedroads,set<string> chaoswayset){
 }
 
 
-
+//Convert a MyNode vector to a string set
 set<string> ConvertNodesToStringSet(vector<MyNode*> mynodes){
   vector<string> stringmynodes;
   for( auto elem : mynodes){
@@ -203,7 +194,7 @@ set<string> ConvertNodesToStringSet(vector<MyNode*> mynodes){
   set<string> setmynodes(stringmynodes.begin(),stringmynodes.end());
   return setmynodes;
 }
-
+//Convert a set to a vector MyNode
 vector<MyNode*> ConvertSetToNodes(set<string> s){
   vector<MyNode*> mynodes;
   for(auto elem : s){
@@ -232,7 +223,7 @@ vector<MyNode*> ConvertSetToNodes(set<string> s){
 }
 
 
-
+//Generate next generation of a chaospath if the chaospath previously did not kill all sendroads
 void AddChildren(vector<vector<MyNode*>>& children,vector<MyNode*> prevpath){
   for(auto elem : prevpath[prevpath.size()-1]->neighbor){
   	if(!CheckVisited(elem,prevpath)){
@@ -243,7 +234,7 @@ void AddChildren(vector<vector<MyNode*>>& children,vector<MyNode*> prevpath){
   	}	
   }
 }
-
+//Find all the shortest chaospath for one node
 vector<set<string>> ChaosForOneNode(MyNode* node,vector<set<string>> intersectedsendroads){
   vector<vector<MyNode*>> children;
   vector<MyNode*> dummyvector1;
@@ -266,7 +257,7 @@ vector<set<string>> ChaosForOneNode(MyNode* node,vector<set<string>> intersected
   }
   return solutions;
 }
-
+//Kill all of the permutations in a vector of sets
 vector<set<string>> EliminatePermutation(vector<set<string>> permutedvecset){
   vector<set<string>> newvecset;
   for(auto elem : permutedvecset){
@@ -276,7 +267,7 @@ vector<set<string>> EliminatePermutation(vector<set<string>> permutedvecset){
   }
   return newvecset;
 }
-
+//Find all the shortest chaospath for all nodes
 vector<set<string>> MakeChaosPaths(vector<MyNode*> unioninterroadsvec,vector<set<string>> intersectedsendroads){
   vector<set<string>> solutions;
   for(auto elem : unioninterroadsvec){
@@ -285,7 +276,7 @@ vector<set<string>> MakeChaosPaths(vector<MyNode*> unioninterroadsvec,vector<set
   }
   return solutions;
 }
-
+//Make attribute so that we can use it in DoingChaos later
 string MakeAttribute(set<string> s){
   string str = " --ChaosPaths=";
   for(auto elem : s){
@@ -295,7 +286,7 @@ string MakeAttribute(set<string> s){
   str += "\"";
   return str;
 }
-
+//Calculate chaospath for each sendevent
 void CalculateChaosPaths(vector<SendEvents*>& events){
   	for(auto elem: events){
 		  vector<set<string>> chaospaths;
@@ -318,8 +309,7 @@ void CalculateChaosPaths(vector<SendEvents*>& events){
 		  }
 		  
   	  clog << "[From Node " << elem->start << " To Node " << elem->end << "] POSSIBLE ROADS : " ;
-  	  
-  	  for(set<string> road : elem->vectorsendroads){
+  	  for(set<string> road : elem->sendroads){
   	    string str;
   	    for(string stuff : road){
   	      str += stuff + ",";
@@ -327,18 +317,8 @@ void CalculateChaosPaths(vector<SendEvents*>& events){
   	    clog << str.substr(0,str.length()-1);
   	    clog << "|";
   	  }
-  	  clog << endl;
-  	  clog << "[From Node " << elem->start << " To Node " << elem->end << "] CHAOSPATHS : " ;
-  	  for(vector<string> sol : solutions){
-  	    string str;
-  	    for(string stuff : sol){
-  	      str += stuff + ",";
-  	    }
-  	    clog << str.substr(0,str.length()-1);
-  	    clog << "|";
-  	  }
+  	  
 			clog << endl;
-			
       for(auto solution : solutions){
         string attribute = MakeAttribute(solution);
         clog << "COMMENCING LINAGE FAULTINJECTION " << endl;
@@ -351,6 +331,7 @@ void CalculateChaosPaths(vector<SendEvents*>& events){
         ReadLog();
       }
   	}
+  
 }
 
 int main (){
@@ -360,4 +341,5 @@ int main (){
     CalculateChaosPaths(events);
     return 0;
 }
+
 
