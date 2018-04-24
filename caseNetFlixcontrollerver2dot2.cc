@@ -14,9 +14,9 @@
 #include<bits/stdc++.h>
 #include <algorithm>
 using namespace std;
+
 //Start NextExperiment if true
 bool NextExperiment = true;
-
 //Cexp = a chaos experiment object
 struct CExp{
   string name;
@@ -28,9 +28,9 @@ struct SendEvents{
   string end;
   string attribute;
   vector<set<string>> sendroads;
+  vector<vector<string>> vectorsendroads;
   vector<set<string>> chaospaths;
 };
-
 //This is for calculateting chaos road . 
 struct MyNode{
   string info;
@@ -62,10 +62,9 @@ void exec(const char* cmd) {
 }
 //execute a chaos experiment on caseNetFlixchaosver2
 void DoingChaos(string attribute){
-   std::string command = "./waf --run \"scratch/caseNetFlixchaosver2dot2" + attribute + " 2> scratch/caseNetFlixlogs2.txt";
+   std::string command = "./waf --run \"scratch/caseNetFlixchaosver2dot2" + attribute + " 2> scratch/caseNetFlixlogs2dot2.txt";
    exec(command.c_str());
 }
-
 //Read logfile from the experient (After DoingChaos function)
 void ReadLog(){
   exec("diff scratch/caseNetFlixver2Unwantedlogs.txt scratch/caseNetFlixlogs2dot2.txt | grep '>' | sed 's/^> //g' > scratch/caseNetFlixver2logsdiff.txt");
@@ -105,7 +104,7 @@ void ProduceRoads(vector<SendEvents*>& events){
     for( auto elem: events){
       elem->attribute = RequestMapRoad + " --StartNode=" + elem->start + " --EndNode=" + elem->end + "\"";
       DoingChaos(elem->attribute);
-		  ifstream infile("scratch/caseNetFlixlogs2.txt");
+		  ifstream infile("scratch/caseNetFlixlogs2dot2.txt");
 		  string findstring = "[Roads from Node " + elem->start + " to Node " + elem->end + "]";
 			for (string line; std::getline(infile, line); ) {   
 		    if (line.find(findstring) != std::string::npos){
@@ -114,6 +113,7 @@ void ProduceRoads(vector<SendEvents*>& events){
 			    for( auto road: RoadsInfos){
 			      vector<string> v = split(road,",");
 			      set<string> s(v.begin(), v.end());
+			      elem->vectorsendroads.push_back(v);
 			      elem->sendroads.push_back(s);
 			    }
 		    } 
@@ -222,7 +222,6 @@ vector<MyNode*> ConvertSetToNodes(set<string> s){
   return mynodes;
 }
 
-
 //Generate next generation of a chaospath if the chaospath previously did not kill all sendroads
 void AddChildren(vector<vector<MyNode*>>& children,vector<MyNode*> prevpath){
   for(auto elem : prevpath[prevpath.size()-1]->neighbor){
@@ -309,7 +308,8 @@ void CalculateChaosPaths(vector<SendEvents*>& events){
 		  }
 		  
   	  clog << "[From Node " << elem->start << " To Node " << elem->end << "] POSSIBLE ROADS : " ;
-  	  for(set<string> road : elem->sendroads){
+  	  
+  	  for(vector<string> road : elem->vectorsendroads){
   	    string str;
   	    for(string stuff : road){
   	      str += stuff + ",";
@@ -317,8 +317,18 @@ void CalculateChaosPaths(vector<SendEvents*>& events){
   	    clog << str.substr(0,str.length()-1);
   	    clog << "|";
   	  }
-  	  
+  	  clog << endl;
+  	  clog << "[From Node " << elem->start << " To Node " << elem->end << "] CHAOSPATHS : " ;
+  	  for(set<string> sol : solutions){
+  	    string str;
+  	    for(string stuff : sol){
+  	      str += stuff + ",";
+  	    }
+  	    clog << str.substr(0,str.length()-1);
+  	    clog << "|";
+  	  }
 			clog << endl;
+			
       for(auto solution : solutions){
         string attribute = MakeAttribute(solution);
         clog << "COMMENCING LINAGE FAULTINJECTION " << endl;
@@ -331,7 +341,6 @@ void CalculateChaosPaths(vector<SendEvents*>& events){
         ReadLog();
       }
   	}
-  
 }
 
 int main (){
@@ -341,5 +350,4 @@ int main (){
     CalculateChaosPaths(events);
     return 0;
 }
-
 

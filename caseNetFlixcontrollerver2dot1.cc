@@ -14,9 +14,9 @@
 #include<bits/stdc++.h>
 #include <algorithm>
 using namespace std;
+
 //Start NextExperiment if true
 bool NextExperiment = true;
-
 //Cexp = a chaos experiment object
 struct CExp{
   string name;
@@ -30,7 +30,6 @@ struct SendEvents{
   vector<set<string>> sendroads;
   vector<set<string>> chaospaths;
 };
-
 //This is for calculateting chaos road . 
 struct MyNode{
   string info;
@@ -62,13 +61,12 @@ void exec(const char* cmd) {
 }
 //execute a chaos experiment on caseNetFlixchaosver2
 void DoingChaos(string attribute){
-   std::string command = "./waf --run \"scratch/caseNetFlixchaosver2dot1" + attribute + " 2> scratch/caseNetFlixlogs2.txt";
+   std::string command = "./waf --run \"scratch/caseNetFlixchaosver2dot1" + attribute + " 2> scratch/caseNetFlixlogs2dot1.txt";
    exec(command.c_str());
 }
-
 //Read logfile from the experient (After DoingChaos function)
 void ReadLog(){
-  exec("diff scratch/caseNetFlixver2Unwantedlogs.txt scratch/caseNetFlixlogs2.txt | grep '>' | sed 's/^> //g' > scratch/caseNetFlixver2logsdiff.txt");
+  exec("diff scratch/caseNetFlixver2Unwantedlogs.txt scratch/caseNetFlixlogs2dot1.txt | grep '>' | sed 's/^> //g' > scratch/caseNetFlixver2logsdiff.txt");
   ifstream infile("scratch/caseNetFlixver2logsdiff.txt");
   bool success = true;
   for (string line; std::getline(infile, line); ) {
@@ -105,7 +103,7 @@ void ProduceRoads(vector<SendEvents*>& events){
     for( auto elem: events){
       elem->attribute = RequestMapRoad + " --StartNode=" + elem->start + " --EndNode=" + elem->end + "\"";
       DoingChaos(elem->attribute);
-		  ifstream infile("scratch/caseNetFlixlogs2.txt");
+		  ifstream infile("scratch/caseNetFlixlogs2dot1.txt");
 		  string findstring = "[Roads from Node " + elem->start + " to Node " + elem->end + "]";
 			for (string line; std::getline(infile, line); ) {   
 		    if (line.find(findstring) != std::string::npos){
@@ -183,7 +181,6 @@ bool FailAllRoads(vector<set<string>> intersectedroads,set<string> chaoswayset){
   }
   return true;
 }
-
 
 //Convert a MyNode vector to a string set
 set<string> ConvertNodesToStringSet(vector<MyNode*> mynodes){
@@ -309,6 +306,7 @@ void CalculateChaosPaths(vector<SendEvents*>& events){
 		  }
 		  
   	  clog << "[From Node " << elem->start << " To Node " << elem->end << "] POSSIBLE ROADS : " ;
+  	  
   	  for(set<string> road : elem->sendroads){
   	    string str;
   	    for(string stuff : road){
@@ -317,8 +315,18 @@ void CalculateChaosPaths(vector<SendEvents*>& events){
   	    clog << str.substr(0,str.length()-1);
   	    clog << "|";
   	  }
-  	  
+  	  clog << endl;
+  	  clog << "[From Node " << elem->start << " To Node " << elem->end << "] CHAOSPATHS : " ;
+  	  for(set<string> sol : solutions){
+  	    string str;
+  	    for(string stuff : sol){
+  	      str += stuff + ",";
+  	    }
+  	    clog << str.substr(0,str.length()-1);
+  	    clog << "|";
+  	  }
 			clog << endl;
+			
       for(auto solution : solutions){
         string attribute = MakeAttribute(solution);
         clog << "COMMENCING LINAGE FAULTINJECTION " << endl;
@@ -341,5 +349,4 @@ int main (){
     CalculateChaosPaths(events);
     return 0;
 }
-
 
