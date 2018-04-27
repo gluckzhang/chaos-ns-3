@@ -25,3 +25,4 @@ second_chaos.cc    	secondcontroller.cc   secondlogsnonchaos.txt
 third.cc <br />
 thirdchaos.cc    	thirdcontroller.cc  	thirdlogsnonchaos.txt
 
+You might also need to remove or add some eventual unwanted output from the terminal in the nonchaos log file , so that the output becomes clearer.
