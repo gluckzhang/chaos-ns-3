@@ -25,6 +25,12 @@ second_chaos.cc    	secondcontroller.cc   secondlogsnonchaos.txt
 third.cc <br />
 thirdchaos.cc    	thirdcontroller.cc  	thirdlogsnonchaos.txt
 
+caseNetFlixcontrollerver2random.cc    caseNetflixchaosver2.cc caseNetFLixver2Unwantedlogs.txt
+
+caseNetFlixcontrollerver2do1random.cc    caseNetflixchaosver2dot1.cc caseNetFLixver2Unwantedlogs.txt
+
+caseNetFlixcontrollerver2dot2random.cc    caseNetflixchaosver2dot2.cc caseNetFLixver2Unwantedlogs.txt
+
 To run the program for chaos engineering type ./waf --run scratch/<any controller file listed above>  in the ns-3-dev folder. For example ./waf --run scratch/firstcontroller <br />.
   
 You might also need to remove or add some eventual unwanted output from the terminal in the nonchaos log file , so that the output becomes clearer.
