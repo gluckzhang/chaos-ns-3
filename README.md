@@ -24,6 +24,9 @@ caseNetFlixchaosver2dot2.cc       	caseNetFlixcontrollerver2dot2.cc         	cas
 
 caseNetFlixchaosver3.cc  	caseNetFlixcontrollerver3.cc 	caseNetFlixver2Unwantedlogs.txt  caseNetFlixlogs3UnwantedLogs.txt
 
+To run any program above for chaos engineering type ./waf --run scratch/<any controller file> in ns-3-dev folder . For example 
+./waf --run scratch/caseNetFlixcontrollerver2
+
 As in master repository(./NetAnim and load in netanim folder)
 
 NetFlixAnim.xml
