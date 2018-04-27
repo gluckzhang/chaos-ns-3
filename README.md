@@ -31,3 +31,5 @@ NetFlixAnim.xml
 NetFlixAnimver2.xml
 
 NetFlixAnimver2dot1.xml
+
+You might also need to remove or add some output in the caseNetFlixver2Unwantedlogs.txt and caseNetFlixlogs3UnwantedLogs.txt ,so that the output becomes clearer when running the caseNetFlixfiles.
