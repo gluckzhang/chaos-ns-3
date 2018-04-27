@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <math.h> 
 #include "ns3/vector.h"
-#include "ns3/nqos-wifi-mac-helper.h"
 using namespace ns3;
 using namespace std;
 NS_LOG_COMPONENT_DEFINE ("SecondScriptExample");
