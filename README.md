@@ -31,7 +31,7 @@ caseNetFlixcontrollerver2dot1random.cc    caseNetflixchaosver2dot1.cc caseNetFLi
 
 caseNetFlixcontrollerver2dot2random.cc    caseNetflixchaosver2dot2.cc caseNetFLixver2Unwantedlogs.txt
 
-To run the program for chaos engineering type ./waf --run scratch/<any controller file listed above>  in the ns-3-dev folder. For example ./waf --run scratch/firstcontroller <br />.
+To run the program for chaos engineering type ./waf --run scratch/(any controller file listed above)  in the ns-3-dev folder. For example ./waf --run scratch/firstcontroller <br />.
 
 If it is those files in LDFI and random application branch for extrapolation of unknown system. You must have these files <br />
 
@@ -42,14 +42,19 @@ caseNetFlixcontrollerver2dot2random.cc    caseNetflixchaosver2dot2.cc   Xpolatec
 and also you will need these files caseNetFlixlogs3UnwantedLogs  caseNetFLixver2Unwantedlogs.txt for a beatiful output.
 
 To normally run as it should then you should type <br />
-  ./waf --run "scratch/Xpolatechaoscontroller --UnknownSystemname=<controllername>"   in the ns-3-dev folder, <controllername> in this case is just the random fault injector controller either caseNetFlixcontrollerver2dot1random or caseNetFlixcontrollerver2dot2random . This will take a very long time for ver2dot1 269 seconds i think so it is better to just use my already generated logs if you want to save time . <br />
-  Available logs: RandomDatacaseNetFlixver2dot1.txt  RandomDatacaseNetFlixver2dot2.txt <br />
-  when after downloading these if you want to for example run ver2dot1 just rename RandomDatacaseNetFlixver2dot1.txt as  DataFromUnknowndSystem.txt and the same for RandomDatacaseNetFlixver2dot2.txt  <br />
-  To run just from logs type ./waf --run "scratch/Xpolatechaoscontroller --UnknownSystemname=<controllername> --UseLogInstead=1"
-  and finally if you want the animation to look similar to the original type for example
-  ./waf --run "scratch/Xpolatechaoscontroller --UnknownSystemname=<controllername> --EnableAnimForver2dot1=1" for ver2dot1
-  and obviously both only from log and beautiful animation
-   ./waf --run "scratch/Xpolatechaoscontroller --UnknownSystemname=<controllername> --UseLogInstead=1 --EnableAnimForver2dot1=1"
+  ./waf --run "scratch/Xpolatechaoscontroller --UnknownSystemname=controllername"   in the ns-3-dev folder, <controllername> in this case is just the random fault injector controller either caseNetFlixcontrollerver2dot1random or caseNetFlixcontrollerver2dot2random . This will take a very long time for ver2dot1 269 seconds i think so it is better to just use my already generated logs if you want to save time . <br />
+
+Available logs: RandomDatacaseNetFlixver2dot1.txt  RandomDatacaseNetFlixver2dot2.txt <br />
+  
+After downloading these if you want to for example run ver2dot1 just rename RandomDatacaseNetFlixver2dot1.txt as  DataFromUnknowndSystem.txt and the same for RandomDatacaseNetFlixver2dot2.txt  <br />
+
+To run just from logs type ./waf --run "scratch/Xpolatechaoscontroller --UnknownSystemname=controllername --UseLogInstead=1"
+
+Finally if you want the animation to look similar to the original type for example
+  ./waf --run "scratch/Xpolatechaoscontroller --UnknownSystemname=controllername --EnableAnimForver2dot1=1" for ver2dot1
+
+And obviously both only from log and beautiful animation
+   ./waf --run "scratch/Xpolatechaoscontroller --UnknownSystemname=controllername --UseLogInstead=1 --EnableAnimForver2dot1=1"
 
 
   
