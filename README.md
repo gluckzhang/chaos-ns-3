@@ -39,7 +39,7 @@ caseNetFlixcontrollerver2dot1random.cc    caseNetflixchaosver2dot1.cc   Xpolatec
 
 caseNetFlixcontrollerver2dot2random.cc    caseNetflixchaosver2dot2.cc   Xpolatechaoscontroller.cc  Xpolator.cc 
 
-and also you will need these files caseNetFlixlogs3UnwantedLogs  caseNetFLixver2Unwantedlogs.txt for a beatiful output.
+and also you will need these files caseNetFlixlogs3UnwantedLogs  caseNetFLixver2Unwantedlogs.txt for a beautiful output.
 
 To normally run as it should then you should type <br />
   ./waf --run "scratch/Xpolatechaoscontroller --UnknownSystemname=controllername"   in the ns-3-dev folder, <controllername> in this case is just the random fault injector controller either caseNetFlixcontrollerver2dot1random or caseNetFlixcontrollerver2dot2random . This will take a very long time for ver2dot1 269 seconds i think so it is better to just use my already generated logs if you want to save time . <br />
