@@ -19,6 +19,8 @@ using namespace std;
 //Start NextExperiment if true
 bool NextExperiment = true;
 //For each [PlanedSendEvent] take the info from the outputfile from the Nonchaos case and store it as a sendevent
+static vector<set<string>> successfulcases;
+static vector<set<string>> failedcases;
 struct SendEvents{
   string start;
   string end;
@@ -61,15 +63,15 @@ void ReadLog(){
   ifstream infile("scratch/caseNetFlixver2logsdiff.txt");
   bool success = true;
   for (string line; std::getline(infile, line); ) {
-      clog << line << endl;
+      //clog << line << endl;
       if(line.find("Echoing packet") != std::string::npos){
         success = false;
       }
   }
   if(success){
-    clog << "EXPERIMENT SUCCESS" << endl;
+    //clog << "EXPERIMENT SUCCESS" << endl;
   }else{
-    clog << "EXPERIMENT FAILED" << endl;
+    //clog << "EXPERIMENT FAILED" << endl;
   }
   infile.close();
 }
@@ -157,11 +159,11 @@ void inline go(int offset, int k,vector<int>& people,vector<int>& combination,ve
 
 void printvector(vector<set<string>> vec){
   for(set<string> elem : vec){
-    cout << "This set : ";
+    //clog << "This set : ";
     for(auto thing: elem){
-      cout << thing << " ";
+      //clog << thing << " ";
     }
-    cout << endl;
+    //clog << endl;
   }
 }
 //For each sendevents we caught in the module we generate all possible hypotheses
@@ -191,11 +193,11 @@ bool CheckForSolution(string attribute){
       }
   }
   if(success){
-    clog << "EXPERIMENT SUCCESS" << endl;
+    //clog << "EXPERIMENT SUCCESS" << endl;
     return true;
   }
   infile.close();
-  clog << "EXPERIMENT FAILED" << endl;
+  //clog << "EXPERIMENT FAILED" << endl;
   return false;
 }
 //Test out all of the hypotheses
@@ -204,23 +206,43 @@ void TestHypotheses(vector<SendEvents*>& events){
     vector<set<string>> solutions;
     for(set<string> thing : elem->possiblesolutions){
       string attribute = MakeAttribute(thing);
-      cout << "Doing experiment with hypothesis: " << attribute.substr(3,attribute.length()-4) << endl;
+      //clog << "Doing experiment with hypothesis: " << attribute.substr(3,attribute.length()-4) << endl;
+      //check whether if the set<string> is the weakness of the system
       if(CheckForSolution(attribute)){
         solutions.push_back(thing);
-        //cout << "attribute " << attribute << endl;
+        successfulcases.push_back(thing);
+      }else{
+        failedcases.push_back(thing);
       }
     }    
   }
   
 }
 int main (){
-    chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+		//Uncomment chrono if you want to take time of the random fault injector
+    //chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     vector <SendEvents*> events;
     RecordSendEvents(events);
     GenerateRandomHypotheses(events);
     TestHypotheses(events);
-    chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
-    cout << "Time difference = " << chrono::duration_cast<chrono::seconds>(end - begin).count() <<" seconds" <<endl;
+    //chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
+    //clog << "Time difference = " << chrono::duration_cast<chrono::seconds>(end - begin).count() <<" seconds" <<endl;
+    clog << "SUCCESSFULCASES" << endl;
+    for(set<string> s: successfulcases){
+      string str = "";
+      for( string elem : s){
+        str += elem + " ";
+      }
+      clog << str << endl;
+    } 
+    clog << "FAILEDCASES" << endl;
+    for(set<string> s: failedcases){
+      string str = "";
+      for( string elem : s){
+        str += elem + " ";
+      }
+      clog << str << endl;
+    } 
     return 0;
 }
 
