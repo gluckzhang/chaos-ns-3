@@ -33,7 +33,7 @@ caseNetFlixcontrollerver2dot2random.cc    caseNetflixchaosver2dot2.cc caseNetFLi
 
 To run the program for chaos engineering type ./waf --run scratch/(any controller file listed above)  in the ns-3-dev folder. For example ./waf --run scratch/firstcontroller <br />.
 
-If it is those files in LDFI and random application branch for extrapolation of unknown system. You must have these files <br />
+If it is those files in LDFI and random application branch for extrapolation of unknown system. You must create a directory called  ExtrapolatedSystems in ns-3-dev folder for storing the step by step builds of the solution system and also you must have these files below <br />
 
 caseNetFlixcontrollerver2dot1random.cc    caseNetflixchaosver2dot1.cc   Xpolatechaoscontroller.cc  Xpolator.cc 
 
