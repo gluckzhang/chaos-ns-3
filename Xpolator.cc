@@ -225,12 +225,12 @@ void ConfigureForVer2dot1(AnimationInterface& anim,NodeContainer allnodes,Tree* 
 	double angle = PI/4;
 	anim.SetConstantPosition(tree->startnode->thisnode,0,0);
 	anim.SetConstantPosition(allnodes.Get(6),r*cos(angle),r*sin(angle));
-	anim.SetConstantPosition(allnodes.Get(1),r*cos(angle),0);
-	anim.SetConstantPosition(allnodes.Get(4),r*cos(angle),-r*sin(angle));
+	anim.SetConstantPosition(allnodes.Get(4),r*cos(angle),0);
+	anim.SetConstantPosition(allnodes.Get(1),r*cos(angle),-r*sin(angle));
 	anim.SetConstantPosition(allnodes.Get(5),r*cos(angle) + r,r*sin(angle));
 	anim.SetConstantPosition(allnodes.Get(3),r*cos(angle) + r,0);
 	anim.SetConstantPosition(tree->endnode->thisnode,r*cos(angle) + 2*r,0);
-	anim.SetConstantPosition(allnodes.Get(2),2*r*cos(angle),0);
+	//anim.SetConstantPosition(allnodes.Get(2),2*r*cos(angle),0);
 }
 
 void ConfigureForVer2dot2(AnimationInterface& anim,NodeContainer allnodes,Tree* tree){
